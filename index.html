@@ -1,0 +1,1207 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+</head>
+<body>
+<title>Pon tu hit · Just Burger</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Figtree:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+/* Layout: una columna tipo app (max 1080px), cabecera fija con mesa y navegación; en móvil la navegación pasa a una barra inferior.
+   Identidad tomada del PPT: fondo ciruela, titulares condensados amarillos, acentos rosados. Tema oscuro único, a propósito. */
+:root {
+  color-scheme: dark;
+  --bg: #2b0f2c;
+  --bg-2: #3a1539;
+  --card: #45193f;
+  --card-2: #55204d;
+  --line: #6e3263;
+  --yellow: #f6d21b;
+  --pink: #ec6fcb;
+  --red: #d8162a;
+  --fg: #fff4fb;
+  --muted: #d9b7cf;
+  --quiet: #a9819f;
+  --ok: #5fd39a;
+  --warn: #ffb547;
+  --bad: #ff6b7d;
+  --ink-on-yellow: #2b0f2c;
+  --f-display: "Anton", "Impact", "Arial Narrow", sans-serif;
+  --f-body: "Figtree", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --r: 14px;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { background: var(--bg); color: var(--fg); }
+body { font-family: var(--f-body); font-size: 16px; line-height: 1.5; margin: 0; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--bg); }
+button, input, select, textarea { font: inherit; color: inherit; }
+a { color: var(--pink); }
+:focus-visible { outline: 3px solid var(--yellow); outline-offset: 2px; border-radius: 6px; }
+h1, h2, h3 { text-wrap: balance; margin: 0; }
+.display { font-family: var(--f-display); font-weight: 400; text-transform: uppercase; letter-spacing: .01em; line-height: .92; }
+.eyebrow { font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--pink); }
+.muted { color: var(--muted); }
+.quiet { color: var(--quiet); }
+.mono { font-family: var(--f-mono); }
+.num { font-variant-numeric: tabular-nums; }
+
+.wrap { max-width: 1080px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+
+/* Cabecera */
+.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+.top .wrap { display: flex; align-items: center; gap: 16px; padding-block: 10px; }
+.brand { display: flex; align-items: center; gap: 10px; background: none; border: 0; padding: 0; cursor: pointer; text-align: left; }
+.mark { font-family: var(--f-display); font-size: 22px; line-height: .85; color: var(--yellow); border: 2px solid var(--yellow); border-radius: 999px 999px 10px 10px; padding: 6px 10px 4px; text-transform: uppercase; }
+.brand small { display: block; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--quiet); line-height: 1.2; }
+.brand b { display: block; font-size: 14px; }
+.nav { display: flex; gap: 4px; margin-left: auto; flex-wrap: wrap; }
+.nav button { background: none; border: 0; color: var(--muted); padding: 8px 10px; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 14px; }
+.nav button:hover { color: var(--fg); background: var(--bg-2); }
+.nav button[aria-current="page"] { color: var(--ink-on-yellow); background: var(--yellow); }
+.mesa-chip { font-family: var(--f-mono); font-size: 13px; font-weight: 600; background: var(--pink); color: var(--ink-on-yellow); border-radius: 999px; padding: 4px 10px; white-space: nowrap; }
+.bottom-nav { display: none; }
+
+main { padding-block: 24px 120px; min-height: 70vh; }
+.view { display: grid; gap: 28px; animation: rise .35s ease both; }
+@keyframes rise { from { transform: translateY(6px); } to { transform: none; } }
+@media (prefers-reduced-motion: reduce) { .view, .eq span, .pulse { animation: none !important; } }
+
+/* Botones */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 0; border-radius: 999px; padding: 12px 20px; font-weight: 800; cursor: pointer; text-decoration: none; font-size: 16px; }
+.btn-primary { background: var(--yellow); color: var(--ink-on-yellow); }
+.btn-primary:hover { filter: brightness(1.06); }
+.btn-pink { background: var(--pink); color: var(--ink-on-yellow); }
+.btn-ghost { background: transparent; color: var(--fg); border: 1.5px solid var(--line); }
+.btn-ghost:hover { border-color: var(--pink); }
+.btn-danger { background: var(--bad); color: #2b0f2c; }
+.btn[disabled] { opacity: .45; cursor: not-allowed; filter: none; }
+.btn-sm { padding: 7px 12px; font-size: 14px; }
+.row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+
+.card { background: var(--card); border-radius: var(--r); padding: 20px; min-width: 0; }
+.panel-box { border: 1px solid var(--line); border-radius: var(--r); padding: 20px; min-width: 0; align-content: start; }
+.grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.grid-4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.section-head { display: flex; justify-content: space-between; align-items: end; gap: 12px; flex-wrap: wrap; }
+.section-head h2 { font-size: clamp(30px, 5vw, 44px); color: var(--yellow); }
+
+.tag { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; border-radius: 6px; padding: 2px 7px; border: 1px solid currentColor; }
+.tag-demo { color: var(--quiet); }
+.tag-test { color: var(--pink); }
+.tag-ok { color: var(--ok); }
+.tag-warn { color: var(--warn); }
+.tag-bad { color: var(--bad); }
+
+.notice { border-left: 3px solid var(--yellow); background: var(--bg-2); padding: 10px 14px; border-radius: 0 10px 10px 0; font-size: 14px; color: var(--muted); }
+
+/* Hero */
+.hero { display: grid; grid-template-columns: 1.15fr .85fr; gap: 28px; align-items: center; }
+.hero h1 { font-size: clamp(64px, 12vw, 132px); color: var(--yellow); }
+.hero .sub { font-family: var(--f-display); text-transform: uppercase; color: var(--pink); font-size: clamp(24px, 3.6vw, 36px); line-height: 1; margin-top: 10px; }
+.hero p { font-size: 18px; max-width: 46ch; color: var(--muted); }
+.screen-mock { background: #12060f; border: 3px solid #12060f; border-radius: 18px; box-shadow: 0 0 0 1px var(--line), 0 0 60px -10px var(--pink); overflow: hidden; }
+.screen-mock .scr { background: radial-gradient(120% 90% at 20% 0%, #5b1c55 0%, #2a0b27 60%); padding: 24px; aspect-ratio: 16/10; display: flex; flex-direction: column; justify-content: center; gap: 6px; max-width: 100%; }
+.scr .now { font-family: var(--f-display); color: var(--pink); font-size: clamp(26px, 4vw, 40px); line-height: .95; text-transform: uppercase; text-shadow: 0 0 18px rgba(236,111,203,.6); }
+.scr .who { font-family: var(--f-display); color: var(--yellow); font-size: clamp(34px, 5.4vw, 56px); line-height: .95; text-transform: uppercase; text-shadow: 0 0 18px rgba(246,210,27,.45); }
+.scr .song { font-weight: 700; font-size: 18px; }
+.eq { display: inline-flex; gap: 3px; align-items: end; height: 18px; }
+.eq span { width: 4px; background: var(--yellow); border-radius: 2px; animation: eq 1s ease-in-out infinite; }
+.eq span:nth-child(2) { animation-delay: .2s; } .eq span:nth-child(3) { animation-delay: .4s; } .eq span:nth-child(4) { animation-delay: .1s; }
+@keyframes eq { 0%,100% { height: 5px; } 50% { height: 18px; } }
+
+.steps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.step { background: var(--card); border-radius: var(--r); padding: 18px; display: grid; gap: 6px; align-content: start; }
+.step .n { font-family: var(--f-display); color: var(--pink); font-size: 44px; line-height: 1; }
+.step h3 { color: var(--yellow); font-size: 15px; letter-spacing: .08em; text-transform: uppercase; }
+.step p { margin: 0; font-size: 15px; color: var(--muted); }
+
+/* Ranking */
+.rank { display: grid; gap: 10px; }
+.rank-item { display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; gap: 14px; align-items: center; background: var(--card); border-radius: var(--r); padding: 14px 18px; position: relative; overflow: hidden; }
+.rank-item .pos { font-family: var(--f-display); font-size: 54px; line-height: 1; color: var(--pink); }
+.rank-item.p1 { background: linear-gradient(90deg, #5d2252, var(--card)); box-shadow: inset 0 0 0 2px var(--yellow); }
+.rank-item.p1 .pos { color: var(--yellow); }
+.rank-item .t { font-weight: 800; font-size: 18px; overflow-wrap: anywhere; }
+.rank-item .a { color: var(--muted); font-size: 14px; }
+.rank-item .c { text-align: right; }
+.rank-item .c b { font-family: var(--f-display); font-size: 30px; display: block; line-height: 1; }
+.rank-item .c small { color: var(--quiet); font-size: 12px; }
+.bar { height: 4px; background: var(--bg-2); border-radius: 4px; margin-top: 8px; overflow: hidden; display: flex; }
+.bar i { display: block; height: 100%; }
+.bar .d { background: var(--quiet); } .bar .l { background: var(--pink); }
+.flash { animation: flash 1.2s ease; }
+@keyframes flash { 0% { box-shadow: inset 0 0 0 3px var(--pink); } 100% { box-shadow: inset 0 0 0 0 transparent; } }
+
+/* Formulario */
+.form { display: grid; gap: 20px; }
+.field { display: grid; gap: 6px; }
+.field label, .lbl { font-weight: 700; font-size: 15px; }
+.field .hint { font-size: 13px; color: var(--quiet); }
+.input { background: var(--bg-2); border: 1.5px solid var(--line); border-radius: 12px; padding: 12px 14px; width: 100%; }
+.input:focus { border-color: var(--yellow); outline: none; }
+.input.invalid { border-color: var(--bad); }
+.err { color: var(--bad); font-size: 14px; font-weight: 600; min-height: 1em; }
+.chips { display: flex; gap: 8px; flex-wrap: wrap; }
+.chip { border: 1.5px solid var(--line); background: none; border-radius: 999px; padding: 6px 12px; cursor: pointer; font-weight: 600; font-size: 14px; color: var(--muted); }
+.chip[aria-pressed="true"] { background: var(--pink); border-color: var(--pink); color: var(--ink-on-yellow); }
+.songs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; max-height: 420px; overflow-y: auto; padding: 2px; }
+img.cover { object-fit: cover; display: block; background: var(--bg-2); }
+.play { flex: none; width: 36px; height: 36px; border-radius: 50%; border: 0; background: var(--yellow); color: var(--ink-on-yellow); font-weight: 800; font-size: 13px; cursor: pointer; display: grid; place-items: center; }
+.play:hover { filter: brightness(1.08); }
+.it-list { display: grid; gap: 6px; margin-top: 10px; }
+.it-row { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto auto; gap: 10px; align-items: center; background: var(--card); border-radius: 12px; padding: 8px 10px; }
+.it-row b { display: block; font-size: 15px; overflow-wrap: anywhere; }
+.it-row span span, .it-row > span > span { display: block; font-size: 13px; color: var(--muted); }
+.song-opt { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; gap: 12px; align-items: center; text-align: left; background: var(--card); border: 2px solid transparent; border-radius: 12px; padding: 10px 12px; cursor: pointer; }
+.song-opt:hover { border-color: var(--line); }
+.song-opt[aria-checked="true"] { border-color: var(--yellow); background: var(--card-2); }
+.cover { width: 40px; height: 40px; border-radius: 8px; display: grid; place-items: center; font-family: var(--f-display); font-size: 18px; color: var(--ink-on-yellow); }
+.song-opt b { display: block; font-size: 15px; overflow-wrap: anywhere; }
+.song-opt span { display: block; font-size: 13px; color: var(--muted); }
+.check { display: flex; gap: 10px; align-items: start; font-size: 15px; }
+.check input { width: 20px; height: 20px; margin-top: 2px; accent-color: var(--yellow); flex: none; }
+.slots { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; background: var(--bg-2); border-radius: 12px; padding: 12px 16px; }
+.slots b { font-family: var(--f-display); font-size: 28px; color: var(--yellow); line-height: 1; }
+.selected-box { background: var(--card-2); border-radius: 12px; padding: 12px 16px; display: flex; gap: 12px; align-items: center; }
+
+/* Confirmación */
+.confirm { text-align: center; display: grid; gap: 14px; justify-items: center; padding: 28px 20px; background: radial-gradient(100% 80% at 50% 0%, #642059 0%, var(--card) 70%); border-radius: 22px; }
+.confirm h2 { font-size: clamp(44px, 9vw, 80px); color: var(--yellow); }
+.code { font-family: var(--f-mono); font-size: 22px; background: var(--bg); padding: 8px 16px; border-radius: 10px; letter-spacing: .08em; }
+
+/* Story compartible */
+.story { aspect-ratio: 9/16; width: 100%; max-width: 300px; border-radius: 22px; overflow: hidden; background: radial-gradient(110% 70% at 50% 0%, #a3237f 0%, #3a1238 55%, #200a20 100%); padding: 24px 20px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 20px 60px -20px #000; }
+.story .k { font-family: var(--f-display); text-transform: uppercase; line-height: .9; }
+.story-top3 { background: linear-gradient(180deg, #f6d21b 0%, #f6d21b 38%, #3a1238 38%); }
+
+/* Pantalla del local */
+.tv { background: #12060f; border-radius: 22px; padding: 10px; box-shadow: 0 0 0 1px var(--line), 0 30px 80px -30px var(--pink); }
+.tv-inner { border-radius: 14px; background: radial-gradient(110% 100% at 10% 0%, #5e1d57 0%, #250924 65%); padding: clamp(18px, 4vw, 48px); display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: center; min-height: 340px; }
+.tv .now { font-family: var(--f-display); text-transform: uppercase; color: var(--pink); font-size: clamp(32px, 6vw, 72px); line-height: .9; text-shadow: 0 0 24px rgba(236,111,203,.6); }
+.tv .who { font-family: var(--f-display); text-transform: uppercase; color: var(--yellow); font-size: clamp(42px, 8vw, 104px); line-height: .9; text-shadow: 0 0 24px rgba(246,210,27,.4); }
+.tv .song { font-size: clamp(18px, 2.4vw, 26px); font-weight: 800; }
+.tv .ded { font-size: clamp(16px, 2vw, 22px); color: var(--muted); font-style: italic; }
+.qr-box { background: #fff; padding: 10px; border-radius: 12px; display: inline-grid; place-items: center; }
+.qr-box img, .qr-box canvas { display: block; max-width: 100%; height: auto; }
+
+/* Panel */
+.kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.kpi { background: var(--card); border-radius: var(--r); padding: 16px; display: grid; gap: 2px; }
+.kpi b { font-family: var(--f-display); font-size: 40px; line-height: 1; font-weight: 400; }
+.kpi span { font-size: 13px; color: var(--muted); }
+.kpi small { font-size: 12px; color: var(--quiet); }
+.tbl-wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--quiet); font-weight: 700; }
+td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
+svg text { fill: var(--muted); font-family: var(--f-body); }
+.legend { display: flex; gap: 16px; font-size: 13px; color: var(--muted); flex-wrap: wrap; }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+.dm { background: #fff; color: #222; border-radius: 16px; padding: 14px; font-size: 14px; display: grid; gap: 8px; }
+.dm .bubble { background: #efefef; border-radius: 18px; padding: 10px 14px; }
+.dm .head { font-weight: 700; display: flex; justify-content: space-between; gap: 8px; }
+.dm .head small { color: #777; font-weight: 500; }
+
+footer { border-top: 1px solid var(--line); padding-block: 20px 110px; font-size: 13px; color: var(--quiet); }
+footer .wrap { display: grid; gap: 6px; }
+
+.toast { position: fixed; left: 50%; bottom: calc(86px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--yellow); color: var(--ink-on-yellow); font-weight: 800; padding: 12px 18px; border-radius: 999px; z-index: 40; max-width: calc(100% - 32px); text-align: center; box-shadow: 0 10px 30px -10px #000; }
+.loading { display: grid; place-items: center; gap: 12px; padding: 60px 0; color: var(--muted); }
+.pulse { width: 34px; height: 34px; border-radius: 50%; background: var(--pink); animation: pulse 1s ease-in-out infinite; }
+@keyframes pulse { 0%,100% { transform: scale(.7); opacity: .5; } 50% { transform: scale(1); opacity: 1; } }
+
+@media (max-width: 860px) {
+  .hero, .grid-2, .grid-3 { grid-template-columns: minmax(0, 1fr); }
+  .steps, .kpis, .grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .tv-inner { grid-template-columns: minmax(0, 1fr); }
+  .nav { display: none; }
+  .mesa-chip { margin-left: auto; }
+  .bottom-nav { display: grid; grid-template-columns: repeat(5, 1fr); position: fixed; left: 0; right: 0; bottom: 0; z-index: 25; background: var(--bg-2); border-top: 1px solid var(--line); padding: 6px max(8px, env(safe-area-inset-right, 0px)) calc(6px + env(safe-area-inset-bottom, 0px)) max(8px, env(safe-area-inset-left, 0px)); }
+  .bottom-nav button { background: none; border: 0; color: var(--muted); font-size: 11px; font-weight: 700; padding: 6px 2px; border-radius: 10px; display: grid; justify-items: center; gap: 2px; cursor: pointer; }
+  .bottom-nav button svg { width: 22px; height: 22px; }
+  .bottom-nav button[aria-current="page"] { color: var(--yellow); }
+  .bottom-nav .hit { background: var(--yellow); color: var(--ink-on-yellow) !important; }
+  .mas-menu { position: fixed; right: max(12px, env(safe-area-inset-right, 0px)); bottom: calc(76px + env(safe-area-inset-bottom, 0px)); z-index: 26; background: var(--card-2); border: 1px solid var(--line); border-radius: 14px; padding: 6px; display: grid; min-width: 200px; box-shadow: 0 16px 40px -12px #000; }
+  .mas-menu button { background: none; border: 0; text-align: left; padding: 12px 14px; border-radius: 10px; font-weight: 700; cursor: pointer; }
+  .mas-menu button:hover { background: var(--bg-2); }
+}
+@media (min-width: 861px) { .mas-menu { display: none !important; } }
+@media (max-width: 520px) {
+  .songs { grid-template-columns: minmax(0, 1fr); }
+  .rank-item { grid-template-columns: 44px minmax(0, 1fr) auto; padding: 12px 14px; }
+  .rank-item .pos { font-size: 40px; }
+  .hero h1 { font-size: 64px; }
+  .kpi b { font-size: 32px; }
+}
+</style>
+
+<header class="top">
+  <div class="wrap">
+    <button class="brand" type="button" data-go="inicio" aria-label="Ir al inicio">
+      <span class="mark">Just<br>Burger</span>
+      <span><b>Pon tu hit</b><small>Logo provisional · no oficial</small></span>
+    </button>
+    <nav class="nav" aria-label="Secciones">
+      <button type="button" data-go="inicio">Inicio</button>
+      <button type="button" data-go="elegir">Pon tu hit</button>
+      <button type="button" data-go="top">Top 3</button>
+      <button type="button" data-go="premios">Premios</button>
+      <button type="button" data-go="redes">#PonTuHit</button>
+      <button type="button" data-go="pantalla">Pantalla</button>
+      <button type="button" data-go="panel">Panel</button>
+    </nav>
+    <span class="mesa-chip" id="mesaChip" title="Mesa de demostración (se cambia con el enlace del QR)">Mesa 04</span>
+  </div>
+</header>
+
+<main class="wrap" id="main" tabindex="-1">
+  <div class="loading"><div class="pulse"></div>Cargando Pon tu hit…</div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div><b>Prototipo de demostración</b> de la propuesta «Pon tu hit» para Just Burger · Equipo Los 4P · The Mayflower School.</div>
+    <div>Canciones y artistas son ficticios. No se reproduce música, no se publica en redes ni se envían mensajes. Los premios son una propuesta sujeta a aprobación de Just Burger.</div>
+    <div id="modeLine">Datos: preparando…</div>
+    <div id="attrLine" hidden>Canciones reales: datos y fragmentos de 30 segundos de Apple Music (iTunes Search API), con enlace a la canción. Las canciones marcadas como explícitas se filtran automáticamente.</div>
+  </div>
+</footer>
+
+<nav class="bottom-nav" aria-label="Secciones">
+  <button type="button" data-go="inicio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Inicio</button>
+  <button type="button" data-go="top"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Top 3</button>
+  <button type="button" data-go="elegir" class="hit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="7" cy="17" r="3"/><path d="M10 17V5l10-2v12"/><circle cx="17" cy="15" r="3"/></svg>Pon tu hit</button>
+  <button type="button" data-go="redes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/></svg>Redes</button>
+  <button type="button" data-go="mas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>Más</button>
+</nav>
+
+<div id="masMenu" class="mas-menu" hidden>
+  <button type="button" data-go="premios">Premios</button>
+  <button type="button" data-go="pantalla">Pantalla del local</button>
+  <button type="button" data-go="panel">Panel privado</button>
+</div>
+
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+<script>
+(() => {
+'use strict';
+
+/* ================= Configuración ================= */
+const CONFIG = {
+  // Dirección pública del prototipo publicado. Fuera de claude.ai el QR usa la dirección desde donde se abre la página.
+  publicUrl: (window.claude ? 'https://claude.ai/artifact/QKy41mgEaMzRWpqfuQKhyp' : ''),
+  mesaPorDefecto: '04',
+  cuposPorBloque: 15,
+  minutosPorCancion: 3.5,
+  pinPanel: '2026',            // Protección básica de demostración. No es seguridad real.
+  // Enlaces de redes: dejar vacío hasta tener los oficiales de Just Burger.
+  instagram: '',
+  tiktok: '',
+};
+
+/* ================= Catálogo ficticio ================= */
+const GENEROS = ['Pop', 'Urbano', 'Reggaetón', 'Rock', 'Indie', 'Cumbia', 'Electrónica'];
+const COLORES = { Pop: '#f6d21b', Urbano: '#ec6fcb', 'Reggaetón': '#ff8a5c', Rock: '#ff6b7d', Indie: '#9fd8ff', Cumbia: '#5fd39a', 'Electrónica': '#c9a4ff', Sugerida: '#ffffff', Real: '#ffffff' };
+const nombreGenero = g => g === 'Real' ? 'Canciones reales' : g;
+const CATALOGO = [
+  ['c01','Mesa para cinco','Lunes Eléctrico','Pop'],
+  ['c02','Papas a medianoche','Coral Neón','Urbano'],
+  ['c03','Ruta de las cuatro','Los Satélites del Sur','Rock'],
+  ['c04','Brillo de recreo','Valentina Kosmos','Pop'],
+  ['c05','Pantalla rosa','DJ Mostaza','Electrónica'],
+  ['c06','Juntémonos','La Pandilla Ficticia','Cumbia'],
+  ['c07','Último día de clases','Faro Norte','Indie'],
+  ['c08','Combo doble','Nico Trueno','Reggaetón'],
+  ['c09','Luces del oriente','Bruma & Coto','Urbano'],
+  ['c10','Grito en la micro','Los Mapaches','Rock'],
+  ['c11','Verano en la terraza','Sofía Delta','Pop'],
+  ['c12','Cumbia del bajón','Tropikal Demo','Cumbia'],
+  ['c13','Selfie con la banda','Amapola Beat','Pop'],
+  ['c14','Neón y kétchup','Synth Patagonia','Electrónica'],
+  ['c15','Te dedico la mesa 7','Rulo Martínez','Reggaetón'],
+  ['c16','Domingo sin tareas','Faro Norte','Indie'],
+  ['c17','Hit de la semana','Coral Neón','Urbano'],
+  ['c18','Pogo en el patio','Los Mapaches','Rock'],
+  ['c19','Amarillo mostaza','Valentina Kosmos','Pop'],
+  ['c20','Bajo y papas','DJ Mostaza','Electrónica'],
+  ['c21','Ritmo de pasillo','Nico Trueno','Reggaetón'],
+  ['c22','Tarde de amigos','La Pandilla Ficticia','Cumbia'],
+  ['c23','Postales de marzo','Bruma & Coto','Indie'],
+  ['c24','Cohete de cartón','Lunes Eléctrico','Pop'],
+  ['c25','Luz de bandeja','Amapola Beat','Urbano'],
+  ['c26','Todo el grupo canta','Sofía Delta','Pop'],
+  ['c27','Batería de lata','Los Satélites del Sur','Rock'],
+  ['c28','Repetimos el viernes','Rulo Martínez','Reggaetón'],
+  ['c29','Atardecer cordillera','Synth Patagonia','Electrónica'],
+  ['c30','Cumbia de la última micro','Tropikal Demo','Cumbia'],
+].map(([id, titulo, artista, genero]) => ({ id, titulo, artista, genero, origen: 'catalogo' }));
+
+/* Música real: solo fuera de claude.ai (allí el navegador bloquea audio de otros sitios).
+   Catálogo inicial de canciones reales sin contenido explícito, con fragmentos de 30 s de Apple Music (iTunes Search API). */
+const MUSICA_REAL = !window.claude && /^https?:$/.test(location.protocol);
+const STARTER_REAL = [
+  {"id": "it6796864754", "titulo": "BbY WOW", "artista": "KAROL G, Judeline & rusowsky", "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/f3/08/da/f308da3d-00cc-7682-7be9-87cb882f4ea5/mzaf_129115212197250565.plus.aac.p.m4a", "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/2b/66/b2/2b66b26c-ab23-faa1-c4ee-06fa2cce8f76/26UM1IM00558.rgb.jpg/100x100bb.jpg", "url": "https://music.apple.com/cl/album/bby-wow/6796864741"},
+  {"id": "it1752031539", "titulo": "Si Antes Te Hubiera Conocido", "artista": "KAROL G", "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/0f/07/33/0f0733c9-76b3-39f9-9115-9031acd75839/mzaf_249954100848422596.plus.aac.p.m4a", "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/a0/60/94/a060947c-54d8-0fad-c558-eed12600224c/24UMGIM62705.rgb.jpg/100x100bb.jpg", "url": "https://music.apple.com/cl/album/si-antes-te-hubiera-conocido/1752031533"},
+  {"id": "it1622045962", "titulo": "Ojitos Lindos", "artista": "Bad Bunny & Bomba Estéreo", "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/72/ae/81/72ae81c2-4ef3-b998-40b6-563c0609509f/mzaf_12868850384306577273.plus.aac.p.m4a", "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music112/v4/3e/04/eb/3e04ebf6-370f-f59d-ec84-2c2643db92f1/196626945068.jpg/100x100bb.jpg", "url": "https://music.apple.com/cl/album/ojitos-lindos/1622045624"},
+  {"id": "it1787022572", "titulo": "NUEVAYoL", "artista": "Bad Bunny", "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/2e/97/55/2e97555a-1ed3-9e07-de57-07e1213186c9/mzaf_7594924455925081680.plus.aac.p.m4a", "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/90/5e/7e/905e7ed5-a8fa-a8f3-cd06-0028fdf3afaa/199066342442.jpg/100x100bb.jpg", "url": "https://music.apple.com/cl/album/nuevayol/1787022393"},
+  {"id": "it340234731", "titulo": "Loba", "artista": "Shakira", "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/66/4c/94/664c94a6-d422-4fb6-a5b2-cac522b7fc98/mzaf_13543331719844744447.plus.aac.p.m4a", "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music/51/e4/1a/mzi.hvpbrkmc.jpg/100x100bb.jpg", "url": "https://music.apple.com/cl/album/loba/340234380"},
+  {"id": "it192682831", "titulo": "Ciega, Sordomuda", "artista": "Shakira", "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/3a/18/63/3a1863ef-7849-d8ce-f7f3-b4dff44497d9/mzaf_15137099757104377555.plus.aac.p.m4a", "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/e5/6d/96/e56d9688-0239-7c8f-f907-7614c0f9860b/mzi.uffuznlo.jpg/100x100bb.jpg", "url": "https://music.apple.com/cl/album/ciega-sordomuda/192682818"},
+  {"id": "it1228739609", "titulo": "New Rules", "artista": "Dua Lipa", "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/6e/19/d9/6e19d9ca-1321-1eea-e797-51d7ab5b56c2/mzaf_5898999508314966855.plus.aac.p.m4a", "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/c1/54/2d/c1542d45-c6c2-12ca-7308-6eacd762c562/190295807870.jpg/100x100bb.jpg", "url": "https://music.apple.com/cl/album/new-rules/1228739599"},
+  {"id": "it1538003843", "titulo": "Levitating", "artista": "Dua Lipa", "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/59/dc/4d/59dc4dda-93ff-8f1c-c536-f005f6ea6af5/mzaf_3066686759813252385.plus.aac.p.m4a", "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/6c/11/d6/6c11d681-aa3a-d59e-4c2e-f77e181026ab/190295092665.jpg/100x100bb.jpg", "url": "https://music.apple.com/cl/album/levitating/1538003494"},
+  {"id": "it6828076220", "titulo": "State Of Grace", "artista": "Taylor Swift", "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/a8/6c/44/a86c4450-4546-19f9-68fb-c2b52ec19658/mzaf_7532340140266750343.plus.aac.p.m4a", "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/f0/bc/a9/f0bca9a9-47bc-ec59-0f28-361b7ef5bfde/12UMDIM01011.rgb.jpg/100x100bb.jpg", "url": "https://music.apple.com/cl/album/state-of-grace/6828075698"},
+  {"id": "it6828076235", "titulo": "Red", "artista": "Taylor Swift", "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/ba/d8/e5/bad8e5ca-2bbf-c1ae-5101-4bb87121aefc/mzaf_593727197858271037.plus.aac.p.m4a", "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/f0/bc/a9/f0bca9a9-47bc-ec59-0f28-361b7ef5bfde/12UMDIM01011.rgb.jpg/100x100bb.jpg", "url": "https://music.apple.com/cl/album/red/6828075698"},
+  {"id": "it1440832990", "titulo": "Amor Completo", "artista": "Mon Laferte", "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/cf/de/96/cfde9636-88a5-ca62-06de-e5111d471501/mzaf_16739751041575702200.plus.aac.p.m4a", "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music112/v4/93/d0/4a/93d04ae9-c2bc-dfe9-6bdc-8d1f92647405/16UMGIM02512.rgb.jpg/100x100bb.jpg", "url": "https://music.apple.com/cl/album/amor-completo/1440832974"},
+  {"id": "it1440881140", "titulo": "Mi Buen Amor (feat. Bunbury)", "artista": "Mon Laferte", "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/f9/e4/93/f9e49359-bf77-9d97-8b37-c815b2cd3b17/mzaf_2467335517621981450.plus.aac.p.m4a", "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music112/v4/c4/d0/fe/c4d0fe88-3b6c-4926-97f8-89b88dc56c0f/17UMGIM88272.rgb.jpg/100x100bb.jpg", "url": "https://music.apple.com/cl/album/mi-buen-amor-feat-bunbury/1440880818"},
+  {"id": "it1889992116", "titulo": "honeybee", "artista": "Olivia Rodrigo", "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/07/7f/68/077f68ac-3720-0963-8185-347458b4a3c8/mzaf_826887783104606101.plus.aac.p.m4a", "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/1d/1b/f9/1d1bf9b1-44c6-9a6c-6ffb-c158488c06ce/26UMGIM39303.rgb.jpg/100x100bb.jpg", "url": "https://music.apple.com/cl/album/honeybee/1889992111"},
+  {"id": "it1889992129", "titulo": "expectations", "artista": "Olivia Rodrigo", "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/8b/df/c0/8bdfc0e9-1f7b-8437-0f6a-1523c87e8d4a/mzaf_5536706325659515473.plus.aac.p.m4a", "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/1d/1b/f9/1d1bf9b1-44c6-9a6c-6ffb-c158488c06ce/26UMGIM39303.rgb.jpg/100x100bb.jpg", "url": "https://music.apple.com/cl/album/expectations/1889992111"},
+  {"id": "it1226034393", "titulo": "Sign of the Times", "artista": "Harry Styles", "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/bd/58/37/bd5837c2-3b3b-5f32-c292-fc0af38f6ea6/mzaf_10433939766410649853.plus.aac.p.m4a", "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/3d/5e/aa/3d5eaaa3-9a86-c264-5cd5-7fac83f99a59/886446451978.jpg/100x100bb.jpg", "url": "https://music.apple.com/cl/album/sign-of-the-times/1226034336"},
+  {"id": "it1870984045", "titulo": "Coming Up Roses", "artista": "Harry Styles", "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/44/f1/8a/44f18a73-1e7b-90c1-8f0d-55e9f257463e/mzaf_12931732484760057017.plus.aac.p.m4a", "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/07/41/6a/07416a78-38b9-2d47-7ce8-8a52a44c510f/196874010112.jpg/100x100bb.jpg", "url": "https://music.apple.com/cl/album/coming-up-roses/1870984032"},
+  {"id": "it829910927", "titulo": "A Sky Full of Stars", "artista": "Coldplay", "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/f1/24/d0/f124d058-5d43-73ca-79e4-36f5eb42b172/mzaf_12358370529108063354.plus.aac.p.m4a", "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Features125/v4/60/90/ad/6090adc3-8863-861d-afcc-23c55c6fe5da/dj.vmtulfyu.jpg/100x100bb.jpg", "url": "https://music.apple.com/cl/album/a-sky-full-of-stars/829909653"},
+  {"id": "it1123076826", "titulo": "Fix You", "artista": "Coldplay", "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/e5/42/e3/e542e340-a45c-695e-e0b8-6155e222ebc0/mzaf_14955746616030397665.plus.aac.p.m4a", "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/0c/82/48/0c8248a8-4a5b-d30d-8056-f32d650d2fc9/190295978068.jpg/100x100bb.jpg", "url": "https://music.apple.com/cl/album/fix-you/1123076757"},
+  {"id": "it1398638466", "titulo": "Bailando Solo", "artista": "Los Bunkers", "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/db/6d/f5/db6df514-80a0-1e9f-f86a-6dfb35adeed5/mzaf_12949069736246214650.plus.aac.p.m4a", "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/03/ce/46/03ce4676-1cb5-be08-fb5a-d5d019d414f9/192562626160.jpg/100x100bb.jpg", "url": "https://music.apple.com/cl/album/bailando-solo/1398637829"},
+  {"id": "it1445743471", "titulo": "Nada Nuevo Bajo el Sol", "artista": "Los Bunkers", "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/3a/fd/e0/3afde0ac-deb8-f979-c7e5-e8e58ec04908/mzaf_15340388239134604330.plus.aac.p.m4a", "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music128/v4/8e/31/72/8e317258-879a-fbd1-582e-c0c411f20f68/00602537108190.rgb.jpg/100x100bb.jpg", "url": "https://music.apple.com/cl/album/nada-nuevo-bajo-el-sol/1445743454"},
+  {"id": "it262637529", "titulo": "Trátame Suavemente", "artista": "Soda Stereo", "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/b3/0f/d9/b30fd935-534c-d3b4-ebdd-146900db6c11/mzaf_6164705098236697474.plus.aac.p.m4a", "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/46/99/42/469942d2-3f7d-32cc-8d9f-f0ee7844cd7b/mzi.rpicvdyw.jpg/100x100bb.jpg", "url": "https://music.apple.com/cl/album/tr%C3%A1tame-suavemente/262637460"},
+  {"id": "it262638251", "titulo": "En la Ciudad de la Furia", "artista": "Soda Stereo", "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/f0/1c/b8/f01cb83b-6ffc-9fa7-f9b9-04c27314137b/mzaf_11808163545846184476.plus.aac.p.m4a", "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/46/99/42/469942d2-3f7d-32cc-8d9f-f0ee7844cd7b/mzi.rpicvdyw.jpg/100x100bb.jpg", "url": "https://music.apple.com/cl/album/en-la-ciudad-de-la-furia/262637460"},
+  {"id": "it6812011443", "titulo": "PARADIXE", "artista": "Feid, El Americano 4KT & Pirlo", "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/d0/84/ac/d084ac3e-ef23-7d8b-b184-cae0ccfe4a99/mzaf_7435592495628149966.plus.aac.p.m4a", "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/8f/d6/4c/8fd64cc6-e58c-2edc-1615-238b433a1170/26UM1IM12670.rgb.jpg/100x100bb.jpg", "url": "https://music.apple.com/cl/album/paradixe/6812011280"},
+  {"id": "it1719170507", "titulo": "LUNA", "artista": "Feid & ATL Jacob", "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/15/cd/72/15cd7293-b305-36de-0a92-aa1f1d6f01a7/mzaf_17344613567981298000.plus.aac.p.m4a", "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/7c/54/aa/7c54aa94-9ae3-4b80-7b23-8b23955dc3a2/23UM1IM60703.rgb.jpg/100x100bb.jpg", "url": "https://music.apple.com/cl/album/luna/1719169996"},
+  {"id": "it1819861157", "titulo": "Tears", "artista": "Sabrina Carpenter", "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/8e/39/c2/8e39c256-a452-8928-5f45-9a82d6873f5e/mzaf_11132789052180673913.plus.aac.p.m4a", "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/cc/bc/ef/ccbcefb5-cf3a-1c55-0173-c37602827c7a/25UMGIM81699.rgb.jpg/100x100bb.jpg", "url": "https://music.apple.com/cl/album/tears/1819861154"},
+  {"id": "it1819861170", "titulo": "House Tour", "artista": "Sabrina Carpenter", "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/fd/e4/b1/fde4b14a-41c8-11bd-1c65-037ab12516fa/mzaf_3384880528362252893.plus.aac.p.m4a", "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/cc/bc/ef/ccbcefb5-cf3a-1c55-0173-c37602827c7a/25UMGIM81699.rgb.jpg/100x100bb.jpg", "url": "https://music.apple.com/cl/album/house-tour/1819861154"},
+  {"id": "it1438883872", "titulo": "No Se Va", "artista": "Morat", "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/d7/9a/cf/d79acf7e-4f12-1ac4-fbe5-938a69c9bbbf/mzaf_15397927556811444914.plus.aac.p.m4a", "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/de/2b/1d/de2b1d0f-1cfd-4b89-f456-c8756d015fa1/18UMGIM57686.rgb.jpg/100x100bb.jpg", "url": "https://music.apple.com/cl/album/no-se-va/1438883863"},
+  {"id": "it1445310416", "titulo": "Besos En Guerra", "artista": "Morat & Juanes", "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/15/aa/c6/15aac655-0e2f-1dc3-7199-2aa0a952e72e/mzaf_11010648890177444346.plus.aac.p.m4a", "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/c2/e5/2c/c2e52cc9-504c-f6e9-5ebc-b3816e87097c/17UM1IM39281.rgb.jpg/100x100bb.jpg", "url": "https://music.apple.com/cl/album/besos-en-guerra/1445310402"},
+  {"id": "it1455400735", "titulo": "El Efecto", "artista": "Rauw Alejandro & Chencho Corleone", "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/94/aa/24/94aa2410-ef26-1ca6-654a-eca00dba54ad/mzaf_4129769492258788908.plus.aac.p.m4a", "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music114/v4/8f/b4/86/8fb48663-c2bb-aa02-b69b-406f880d69c1/193483566238.jpg/100x100bb.jpg", "url": "https://music.apple.com/cl/album/el-efecto/1455400725"},
+  {"id": "it6800003928", "titulo": "CARITA FELIZ", "artista": "Myke Towers", "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/5d/aa/b1/5daab185-8362-e4f1-1b19-608bd164e157/mzaf_14751955252766888253.plus.aac.p.m4a", "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/84/b2/54/84b25474-27fe-1c98-4f52-0434c5a89451/1200214798499.jpg/100x100bb.jpg", "url": "https://music.apple.com/cl/album/carita-feliz/6800003927"},
+].map(c => ({ ...c, genero: 'Real', origen: 'real' }));
+
+/* Datos iniciales de ejemplo: solicitudes ficticias de la semana, separadas de las pruebas. */
+const SEED_CONTEOS = { c08: 14, c02: 12, c01: 11, c06: 9, c17: 8, c13: 7, c26: 6, c10: 5, c21: 5, c05: 4, c11: 4, c22: 3, c07: 3, c15: 2, c19: 2, c25: 2, c28: 1, c12: 1 };
+const SEED_POR_DIA = [9, 6, 11, 8, 14, 21, 30]; // lun..dom (suma 99)
+const SEED_TOTAL = Object.values(SEED_CONTEOS).reduce((a, b) => a + b, 0);
+const DIAS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+
+/* Moderación básica: lista corta de términos bloqueados. Una implementación real necesita revisión humana. */
+const BLOQUEADAS = ['weon','weón','ctm','conchetumare','concha','puta','puto','mierda','culiao','culiado','maricon','maricón','pene','sexo','droga','idiota','imbecil','imbécil','tonto','fea','feo','gordo','gorda','perra','zorra','matar','muere','nazi','hitler','pico','raja'];
+
+/* ================= Utilidades ================= */
+const $ = (s, el = document) => el.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const norm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+const tieneBloqueada = s => { const n = ' ' + norm(s).replace(/[^a-z0-9ñ]+/g, ' ') + ' '; return BLOQUEADAS.some(w => n.includes(' ' + norm(w) + ' ')); };
+const ls = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch { return false; } },
+};
+const pad2 = n => String(n).padStart(2, '0');
+const hora = ts => { const d = new Date(ts); return pad2(d.getHours()) + ':' + pad2(d.getMinutes()); };
+const diaIdx = ts => (new Date(ts).getDay() + 6) % 7;
+const inicioSemana = () => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return d.getTime(); };
+let toastT;
+function toast(msg) { const t = $('#toast'); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => { t.hidden = true; }, 2800); }
+
+/* ================= Estado ================= */
+const S = {
+  view: 'inicio',
+  mesa: CONFIG.mesaPorDefecto,
+  pedidos: [], sugerencias: [], estado: {},
+  ready: false, mode: 'local',
+  q: '', genero: 'Todos', sel: null,
+  incluirEjemplo: true,
+  panelOk: false,
+  ultimo: null,           // último pedido de este dispositivo (para confirmación y tarjeta)
+  flashId: null,
+  enviando: false,
+};
+S.panelOk = !!ls.get('ptu-panel-ok', false);
+S.ultimo = ls.get('ptu-ultimo', null);
+
+function leerMesa() {
+  let m = null;
+  try { m = new URLSearchParams(location.search).get('mesa'); } catch {}
+  const h = (location.hash || '').replace('#', '');
+  const mh = h.match(/^mesa-?(\d{1,3})$/i);
+  if (mh) m = mh[1];
+  if (m && /^\d{1,3}$/.test(m)) S.mesa = pad2(parseInt(m, 10));
+  $('#mesaChip').textContent = 'Mesa ' + S.mesa;
+  const vistas = ['inicio', 'elegir', 'top', 'premios', 'redes', 'pantalla', 'panel'];
+  if (vistas.includes(h)) S.view = h;
+}
+
+/* ================= Almacenamiento ================= */
+const LKEY = 'ptu-datos-v1';
+const Store = {
+  db: null,
+  async init() {
+    let db = null, puede = null;
+    try {
+      if (window.claude && typeof window.claude.use === 'function') {
+        db = await window.claude.use('db');
+        const user = await window.claude.use('user');
+        puede = user ? await user.can('data.write') : null;
+      }
+    } catch { db = null; }
+    if (db && puede !== false) {
+      this.db = db; S.mode = 'compartido';
+      this.sub();
+    } else {
+      S.mode = 'local';
+      this.cargarLocal();
+      window.addEventListener('storage', e => { if (e.key === LKEY) { this.cargarLocal(); onData(); } });
+    }
+    S.ready = true; pintarModo(); onData();
+  },
+  sub() {
+    const fail = () => { this.aLocal('Los datos compartidos no están disponibles; la prueba sigue en este dispositivo.'); };
+    try {
+      this.db.collection('pedidos').orderBy('ts').limit(1000).onSnapshot(s => { S.pedidos = s.docs.map(d => ({ id: d.id, ...d.data() })); onData(); }, fail);
+      this.db.collection('sugerencias').orderBy('ts').limit(500).onSnapshot(s => { S.sugerencias = s.docs.map(d => ({ id: d.id, ...d.data() })); onData(); }, fail);
+      this.db.doc('estado/semana').onSnapshot(s => { S.estado = s.exists ? { ...s.data() } : {}; onData(); }, fail);
+    } catch { fail(); }
+  },
+  aLocal(msg) {
+    if (S.mode === 'local') return;
+    this.db = null; S.mode = 'local'; this.cargarLocal(); pintarModo(); onData(); if (msg) toast(msg);
+  },
+  cargarLocal() { const d = ls.get(LKEY, {}); S.pedidos = d.pedidos || []; S.sugerencias = d.sugerencias || []; S.estado = d.estado || {}; },
+  guardarLocal() {
+    const ok = ls.set(LKEY, { pedidos: S.pedidos, sugerencias: S.sugerencias, estado: S.estado });
+    if (!ok) toast('Este navegador no permite guardar datos; la prueba se perderá al recargar.');
+  },
+  nid() { return 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); },
+  async add(col, data) {
+    if (this.db) {
+      try { const ref = await this.db.collection(col).add(data); return { id: ref.id, ...data }; }
+      catch (e) { if (e && (e.code === 'invalid_argument' || e.code === 'not_granted' || e.code === 'revoked')) { this.aLocal('Sin permiso para escribir datos compartidos; la prueba sigue en este dispositivo.'); } else throw e; }
+    }
+    const item = { id: this.nid(), ...data };
+    S[col].push(item); this.guardarLocal(); onData(); return item;
+  },
+  async upd(col, id, patch) {
+    if (this.db) { await this.db.collection(col).doc(id).update(patch); return; }
+    const it = S[col].find(x => x.id === id); if (it) Object.assign(it, patch); this.guardarLocal(); onData();
+  },
+  async setEstado(obj) {
+    if (this.db) { await this.db.doc('estado/semana').set(obj); return; }
+    S.estado = obj; this.guardarLocal(); onData();
+  },
+  async reset() {
+    if (this.db) {
+      for (const p of [...S.pedidos]) await this.db.collection('pedidos').doc(p.id).delete();
+      for (const s of [...S.sugerencias]) await this.db.collection('sugerencias').doc(s.id).delete();
+      await this.db.doc('estado/semana').delete();
+      return;
+    }
+    S.pedidos = []; S.sugerencias = []; S.estado = {}; this.guardarLocal(); onData();
+  },
+};
+function pintarModo() {
+  $('#modeLine').textContent = S.mode === 'compartido'
+    ? 'Datos: compartidos en línea entre quienes abren este prototipo.'
+    : 'Datos: guardados solo en este navegador (modo local de demostración).';
+}
+
+/* ================= Derivados ================= */
+function catalogo() {
+  const extra = S.sugerencias.filter(s => s.estado === 'aprobada').map(s => (MUSICA_REAL && s.preview)
+    ? { id: s.itId, titulo: s.titulo, artista: s.artista, genero: 'Real', origen: 'sugerida', preview: s.preview, artwork: s.artwork, url: s.url }
+    : { id: 's-' + s.id, titulo: s.titulo, artista: s.artista, genero: 'Sugerida', origen: 'sugerida' });
+  const vistos = new Set(), out = [];
+  for (const c of (MUSICA_REAL ? STARTER_REAL.concat(CATALOGO) : CATALOGO).concat(extra)) { if (!vistos.has(c.id)) { vistos.add(c.id); out.push(c); } }
+  return out;
+}
+
+/* ---------- Fragmentos de 30 s (Apple Music) ---------- */
+const audio = new Audio();
+let playingId = null;
+function marcarPlay() {
+  document.querySelectorAll('[data-play]').forEach(b => {
+    const on = b.dataset.play === playingId && !audio.paused;
+    b.textContent = on ? '❚❚' : '▶';
+    b.setAttribute('aria-label', (on ? 'Pausar' : 'Escuchar 30 segundos de ') + (on ? '' : b.dataset.nombre || 'la canción'));
+  });
+}
+function reproducir(id, url) {
+  if (!url) return;
+  if (playingId === id && !audio.paused) { audio.pause(); playingId = null; marcarPlay(); return; }
+  audio.src = url; playingId = id;
+  audio.play().then(marcarPlay).catch(() => { playingId = null; marcarPlay(); toast('No se pudo reproducir el fragmento. Toca de nuevo o revisa el volumen.'); });
+}
+function detener() { audio.pause(); playingId = null; }
+audio.addEventListener('ended', () => { playingId = null; marcarPlay(); });
+audio.addEventListener('pause', marcarPlay);
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-play]'); if (!b) return;
+  e.preventDefault(); e.stopPropagation(); reproducir(b.dataset.play, b.dataset.url);
+}, true);
+function playBtn(c) {
+  return c.preview ? `<button type="button" class="play" data-play="${esc(c.id || c.itId)}" data-url="${esc(c.preview)}" data-nombre="${esc(c.titulo)}" aria-label="Escuchar 30 segundos de ${esc(c.titulo)}">▶</button>` : '';
+}
+async function buscarItunes(q) {
+  const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), 8000);
+  try {
+    const r = await fetch('https://itunes.apple.com/search?' + new URLSearchParams({ term: q, media: 'music', entity: 'song', limit: '25', country: 'CL' }), { signal: ctl.signal });
+    if (!r.ok) throw new Error('http');
+    const d = await r.json(); const all = d.results || [];
+    const ok = all.filter(x => x.trackExplicitness !== 'explicit' && x.previewUrl);
+    return { items: ok.map(x => ({ itId: 'it' + x.trackId, titulo: x.trackName, artista: x.artistName, preview: x.previewUrl, artwork: x.artworkUrl100, url: String(x.trackViewUrl || '').split('?')[0] })), ocultas: all.length - ok.length };
+  } finally { clearTimeout(t); }
+}
+/* Buscador conectado al catálogo de Apple: lo usan el cliente (sugerir) y el encargado (agregar). */
+function montarBuscador(input, out, accion, alElegir) {
+  let timer, ultima = '', res = [];
+  const pintar = html => { out.innerHTML = html; marcarPlay(); };
+  input.addEventListener('input', () => {
+    clearTimeout(timer);
+    const q = input.value.trim();
+    if (q.length < 3) { pintar('<span class="quiet" style="font-size:14px">Escribe al menos 3 letras.</span>'); return; }
+    timer = setTimeout(async () => {
+      ultima = q; pintar('<div class="row quiet" style="font-size:14px"><span class="pulse" style="width:16px;height:16px"></span>Buscando en Apple Music…</div>');
+      try {
+        const r = await buscarItunes(q); if (q !== ultima) return; res = r.items;
+        pintar((res.length ? '<div class="it-list">' + res.slice(0, 12).map((c, i) => `<div class="it-row">${cover(c)}<span style="min-width:0"><b>${esc(c.titulo)}</b><span>${esc(c.artista)}</span></span>${playBtn(c)}<button type="button" class="btn btn-ghost btn-sm" data-it="${i}">${accion}</button></div>`).join('') + '</div>' : '<span class="quiet">Sin resultados aptos.</span>')
+          + (r.ocultas ? `<div class="quiet" style="font-size:13px;margin-top:6px">${r.ocultas} resultado(s) ocultos por contenido explícito o sin fragmento.</div>` : ''));
+      } catch { if (q === ultima) pintar('<span class="err">No pudimos conectar con Apple Music. Revisa tu conexión e inténtalo de nuevo.</span>'); }
+    }, 500);
+  });
+  out.addEventListener('click', e => { const b = e.target.closest('[data-it]'); if (b) alElegir(res[+b.dataset.it], b); });
+}
+function cancion(id) { return catalogo().find(c => c.id === id) || null; }
+function ranking(incluirEjemplo = S.incluirEjemplo) {
+  const m = new Map();
+  const get = id => { if (!m.has(id)) m.set(id, { id, demo: 0, live: 0, primero: Infinity }); return m.get(id); };
+  if (incluirEjemplo) for (const [id, n] of Object.entries(SEED_CONTEOS)) get(id).demo = n;
+  for (const p of S.pedidos) { const r = get(p.cancionId); r.live++; r.primero = Math.min(r.primero, p.ts); }
+  return [...m.values()].map(r => ({ ...r, total: r.demo + r.live, c: cancion(r.id) || { titulo: '(canción retirada)', artista: '—', genero: '' } }))
+    .filter(r => r.total > 0)
+    .sort((a, b) => b.total - a.total || b.live - a.live || a.primero - b.primero || a.c.titulo.localeCompare(b.c.titulo));
+}
+function cola() { return S.pedidos.filter(p => p.estado !== 'sonó').sort((a, b) => a.ts - b.ts); }
+function sonando() { return S.pedidos.find(p => p.estado === 'sonando') || null; }
+function cuposLibres() { return Math.max(0, CONFIG.cuposPorBloque - cola().length); }
+function esperaMin(pos) { return Math.round(pos * CONFIG.minutosPorCancion); }
+function urlMesa(mesa) {
+  const base = CONFIG.publicUrl || (location.protocol.startsWith('http') && !window.claude ? location.origin + location.pathname : '');
+  if (!base) return '';
+  return base.includes('claude.ai/') ? base.split('#')[0] + '#mesa-' + mesa : base.split('?')[0] + '?mesa=' + mesa;
+}
+
+/* ================= Render general ================= */
+function go(view) {
+  const menu = $('#masMenu');
+  if (view === 'mas') { menu.hidden = !menu.hidden; return; }
+  menu.hidden = true;
+  if (view !== S.view) detener();
+  S.view = view;
+  render(true);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-go]'); if (!b) return;
+  e.preventDefault(); go(b.dataset.go);
+});
+function marcarNav() {
+  document.querySelectorAll('[data-go]').forEach(b => {
+    const v = b.dataset.go;
+    const on = v === S.view || (v === 'mas' && ['premios', 'pantalla', 'panel'].includes(S.view));
+    if (b.closest('.nav, .bottom-nav')) { if (on) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); }
+  });
+}
+let pendiente = false;
+function onData() {
+  if (!S.ready) return;
+  const main = $('#main');
+  if (S.view === 'elegir') { actualizarCupos(); return; }
+  if (main.contains(document.activeElement) && document.activeElement.matches('input, textarea, select')) { pendiente = true; return; }
+  render(false);
+}
+document.addEventListener('focusout', () => { if (pendiente) setTimeout(() => { if (!$('#main').contains(document.activeElement) || !document.activeElement.matches('input, textarea, select')) { pendiente = false; render(false); } }, 0); });
+
+function render(nav) {
+  if (!S.ready) return;
+  marcarNav();
+  const v = { inicio: vInicio, elegir: vElegir, confirmado: vConfirmado, top: vTop, premios: vPremios, redes: vRedes, pantalla: vPantalla, panel: vPanel }[S.view] || vInicio;
+  const main = $('#main');
+  main.innerHTML = '<section class="view">' + v() + '</section>';
+  if (!nav) main.firstElementChild.style.animation = 'none';
+  after[S.view] && after[S.view]();
+  if (S.flashId) { const el = main.querySelector('[data-id="' + S.flashId + '"]'); if (el) el.classList.add('flash'); S.flashId = null; }
+}
+const after = {};
+
+/* ---------- Componentes ---------- */
+function cover(c) { if (c.artwork) return '<img class="cover" src="' + esc(c.artwork) + '" alt="" loading="lazy">'; const col = COLORES[c.genero] || '#fff'; return '<span class="cover" style="background:' + col + '" aria-hidden="true">' + esc((c.titulo || '?').charAt(0)) + '</span>'; }
+function top3Html(opts = {}) {
+  const r = ranking().slice(0, 3);
+  if (!r.length) return '<div class="notice">Aún no hay solicitudes. La primera canción que pidas entra directo al ranking.</div>';
+  const max = r[0].total;
+  return '<div class="rank">' + r.map((x, i) => `
+    <article class="rank-item p${i + 1}" data-id="${esc(x.id)}">
+      <div class="pos" aria-label="Posición ${i + 1}">${i + 1}</div>
+      <div style="min-width:0">
+        <div class="t">${esc(x.c.titulo)}</div>
+        <div class="a">${esc(x.c.artista)} ${x.c.origen === 'sugerida' ? '<span class="tag tag-test">sugerida</span>' : ''}</div>
+        ${opts.bars === false ? '' : `<div class="bar" aria-hidden="true"><i class="d" style="width:${(x.demo / max) * 100}%"></i><i class="l" style="width:${(x.live / max) * 100}%"></i></div>`}
+      </div>
+      <div class="c"><b class="num">${x.total}</b><small>${x.total === 1 ? 'solicitud' : 'solicitudes'}</small>
+        <div><small>${x.demo ? x.demo + ' ejemplo' : ''}${x.demo && x.live ? ' · ' : ''}${x.live ? '<span style="color:var(--pink)">' + x.live + ' prueba</span>' : ''}</small></div></div>
+    </article>`).join('') + '</div>';
+}
+function socialBtns() {
+  const b = (nombre, url) => url
+    ? `<a class="btn btn-ghost btn-sm" href="${esc(url)}" target="_blank" rel="noopener">${nombre}</a>`
+    : `<button class="btn btn-ghost btn-sm" type="button" data-social="${nombre}" title="Enlace oficial por configurar">${nombre} · enlace por configurar</button>`;
+  return '<div class="row">' + b('Instagram', CONFIG.instagram) + b('TikTok', CONFIG.tiktok) + '</div>';
+}
+document.addEventListener('click', e => { const b = e.target.closest('[data-social]'); if (b) toast('Demostración: el enlace de ' + b.dataset.social + ' se agrega cuando Just Burger confirme su cuenta oficial.'); });
+
+/* ================= Vistas ================= */
+function vInicio() {
+  const s = sonando();
+  return `
+  <div class="hero">
+    <div style="display:grid;gap:16px;min-width:0">
+      <span class="eyebrow">Just Burger · Mesa ${esc(S.mesa)}</span>
+      <h1 class="display">Pon tu hit</h1>
+      <div class="sub">Tu mesa elige. Todo el local la escucha.</div>
+      <p>Escanea el QR de tu bandeja, elige la canción de tu grupo y mira cómo la pantalla anuncia tu mesa. Las más pedidas de la semana entran al Top 3 y ganan premios en el local.</p>
+      <div class="row"><button class="btn btn-primary" type="button" data-go="elegir" style="font-size:18px;padding:14px 28px">Pon tu hit</button><button class="btn btn-ghost" type="button" data-go="top">Ver el Top 3</button></div>
+    </div>
+    <div class="screen-mock" aria-label="Así se ve la pantalla del local">
+      <div class="scr">
+        <div class="row" style="gap:8px"><span class="eq" aria-hidden="true"><span></span><span></span><span></span><span></span></span><span class="eyebrow" style="color:var(--yellow)">Pantalla del local</span></div>
+        <div class="now">Ahora suena</div>
+        <div class="who">Pedido de la mesa ${esc(s ? s.mesa : '04')}</div>
+        <div class="song">${s ? esc(s.titulo) + ' · <span class="muted">' + esc(s.artista) + '</span>' : 'Juntémonos · <span class="muted">La Pandilla Ficticia</span>'}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-head"><h2 class="display">Cómo funciona</h2><span class="muted">Las 4 etapas de la propuesta</span></div>
+  <div class="steps">
+    <div class="step"><div class="n">01</div><h3>Invitación</h3><p>Cada semana Just publica el Top 3 y una consigna. «Juntémonos y pongamos nuestro hit».</p></div>
+    <div class="step"><div class="n">02</div><h3>Experiencia</h3><p>Escaneas el QR, eliges un tema y la pantalla anuncia: «Ahora suena: pedido de la mesa 4».</p></div>
+    <div class="step"><div class="n">03</div><h3>Premio</h3><p>Si tu canción queda en el Top 3, te avisamos para que retires tu premio en el local.</p></div>
+    <div class="step"><div class="n">04</div><h3>Recuerdo</h3><p>Foto de la mesa frente a la pantalla, compartida con #PonTuHit.</p></div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card" style="display:grid;gap:14px">
+      <div class="section-head"><h2 class="display" style="font-size:34px">Top 3 de la semana</h2><button class="btn btn-ghost btn-sm" type="button" data-go="top">Ver detalle</button></div>
+      ${top3Html({ bars: false })}
+    </div>
+    <div class="card" style="display:grid;gap:12px;align-content:start">
+      <h2 class="display" style="font-size:34px;color:var(--yellow)">Premios</h2>
+      <p class="muted" style="margin:0">Cada domingo se cierran las 3 canciones más pedidas. Las mesas ganadoras reciben <b style="color:var(--fg)">papas gratis o un descuento</b>, que se canjean solo en el local.</p>
+      <p class="quiet" style="margin:0;font-size:14px">Condiciones finales sujetas a aprobación de Just Burger.</p>
+      <div><button class="btn btn-ghost btn-sm" type="button" data-go="premios">Cómo ganar</button></div>
+      <hr style="border:0;border-top:1px solid var(--line);width:100%">
+      <h3 style="font-size:18px">Compártelo con <span style="color:var(--pink)">#PonTuHit</span></h3>
+      ${socialBtns()}
+    </div>
+  </div>`;
+}
+
+function filtrar() {
+  const q = norm(S.q.trim());
+  return catalogo().filter(c => (S.genero === 'Todos' || c.genero === S.genero) && (!q || norm(c.titulo + ' ' + c.artista).includes(q)));
+}
+function listaCanciones() {
+  const l = filtrar();
+  if (!l.length) return '<div class="notice" style="grid-column:1/-1">No encontramos esa canción en el catálogo. Puedes sugerirla más abajo.</div>';
+  return l.map(c => `<div class="song-opt" role="radio" tabindex="0" aria-checked="${S.sel === c.id}" data-song="${esc(c.id)}">${cover(c)}<span style="min-width:0"><b>${esc(c.titulo)}</b><span>${esc(c.artista)} · ${c.origen === 'catalogo' ? esc(c.genero) + ' · ficticia' : 'canción real'}</span></span>${playBtn(c)}</div>`).join('');
+}
+function vElegir() {
+  const visita = ls.get('ptu-visita-' + S.mesa, null);
+  if (visita) {
+    const p = S.pedidos.find(x => x.id === visita);
+    return `<div class="confirm"><span class="eyebrow">Mesa ${esc(S.mesa)}</span><h2 class="display" style="font-size:52px">Tu mesa ya puso su hit</h2>
+      <p class="muted" style="max-width:46ch;margin:0">La regla es <b style="color:var(--fg)">una canción por mesa y por visita</b>, para que todas las mesas alcancen a sonar.${p ? ' Pidieron «' + esc(p.titulo) + '».' : ''}</p>
+      <div class="row" style="justify-content:center"><button class="btn btn-primary" type="button" data-go="top">Ver el Top 3</button><button class="btn btn-ghost" type="button" id="nuevaVisita">Simular nueva visita (demo)</button></div></div>`;
+  }
+  const sel = S.sel ? cancion(S.sel) : null;
+  return `
+  <div class="section-head"><div><span class="eyebrow">Mesa ${esc(S.mesa)} · bloque Pon tu hit</span><h2 class="display">Elige tu hit</h2></div></div>
+  <div class="slots" id="slots"></div>
+  <form class="form" id="formHit" novalidate>
+    <div class="field">
+      <label for="alias">Tu nombre o alias</label>
+      <input class="input" id="alias" name="alias" maxlength="20" autocomplete="off" placeholder="Ej.: Los del 3°B" value="${esc(ls.get('ptu-alias', ''))}">
+      <span class="hint">Aparece en la pantalla. Usa un alias: no pongas tu nombre completo, @usuario ni teléfono.</span>
+      <span class="err" id="errAlias"></span>
+    </div>
+    <div class="field">
+      <span class="lbl" id="lblSong">Canción</span>
+      <input class="input" id="buscar" type="search" placeholder="Busca por canción o artista" value="${esc(S.q)}" aria-label="Buscar canción o artista">
+      <div class="chips" role="group" aria-label="Filtrar por género">${['Todos', ...(MUSICA_REAL ? ['Real'] : []), ...GENEROS, ...(catalogo().some(c => c.genero === 'Sugerida') ? ['Sugerida'] : [])].map(g => `<button type="button" class="chip" data-gen="${esc(g)}" aria-pressed="${S.genero === g}">${esc(nombreGenero(g))}</button>`).join('')}</div>
+      <div class="songs" id="songs" role="radiogroup" aria-labelledby="lblSong">${listaCanciones()}</div>
+      <span class="hint">${MUSICA_REAL ? 'Canciones reales sin contenido explícito (toca ▶ para escuchar 30 s, vía Apple Music) y canciones ficticias de ejemplo. En el local, la lista la revisa el encargado.' : 'Catálogo ficticio de demostración. En el local real sería una playlist revisada por el encargado.'}</span>
+      <span class="err" id="errSong"></span>
+    </div>
+    <div class="selected-box" id="selBox" ${sel ? '' : 'hidden'}>${sel ? cover(sel) + '<div><div class="quiet" style="font-size:12px">Tu elección</div><b>' + esc(sel.titulo) + '</b> <span class="muted">· ' + esc(sel.artista) + '</span></div>' : ''}</div>
+    <div class="field">
+      <label for="ded">Dedicatoria (opcional)</label>
+      <input class="input" id="ded" maxlength="60" autocomplete="off" placeholder="Ej.: Para el grupo de siempre">
+      <span class="hint">Máximo 60 caracteres. Sale en pantalla solo después de que el encargado la apruebe.</span>
+      <span class="err" id="errDed"></span>
+    </div>
+    <label class="check"><input type="checkbox" id="reglas"><span>Acepto las reglas: una canción por mesa y visita; sin contenido ofensivo; el alias y la dedicatoria pueden mostrarse en la pantalla del local. <button type="button" class="btn-link" id="verReglas" style="background:none;border:0;color:var(--pink);text-decoration:underline;padding:0;cursor:pointer">Ver reglas</button></span></label>
+    <div class="notice" id="reglasTxt" hidden>
+      <b>Reglas de participación (demostración)</b><br>
+      1. Una canción por mesa y por visita, mientras haya cupos en el bloque.<br>
+      2. Solo canciones del catálogo revisado. Las sugerencias pasan por moderación.<br>
+      3. Alias y dedicatorias sin insultos, apellidos ni datos personales.<br>
+      4. Las 3 canciones más pedidas de la semana forman el Top 3; las mesas ganadoras reciben un premio canjeable solo en el local.<br>
+      5. No se pide cuenta, contraseña ni datos de pago.
+    </div>
+    <span class="err" id="errReglas"></span>
+    <div class="row"><button class="btn btn-primary" type="submit" id="enviar" style="font-size:18px;padding:14px 28px">Confirmar mi hit</button><span class="quiet" style="font-size:14px">Tu canción suma una solicitud al Top 3.</span></div>
+  </form>
+
+  <details class="panel-box">
+    <summary style="cursor:pointer;font-weight:700">¿No está tu canción? Sugiérela</summary>
+    ${MUSICA_REAL ? `<div class="field" style="margin-top:16px"><label for="itq">Búscala en Apple Music</label><input class="input" id="itq" type="search" autocomplete="off" placeholder="Canción o artista"><span class="hint">Solo aparecen canciones sin contenido explícito. Tu sugerencia queda pendiente hasta que el encargado la apruebe.</span><div id="itRes"></div></div><p class="quiet" style="font-size:14px;margin:12px 0 0">¿No la encuentras? Escríbela a mano:</p>` : ''}
+    <form class="form" id="formSug" novalidate style="margin-top:16px">
+      <div class="grid-2">
+        <div class="field"><label for="sugT">Canción</label><input class="input" id="sugT" maxlength="60" autocomplete="off"><span class="err" id="errSugT"></span></div>
+        <div class="field"><label for="sugA">Artista</label><input class="input" id="sugA" maxlength="60" autocomplete="off"><span class="err" id="errSugA"></span></div>
+      </div>
+      <div class="row"><button class="btn btn-pink" type="submit">Enviar sugerencia</button><span class="quiet" style="font-size:14px">El equipo de Just la revisa antes de agregarla al catálogo.</span></div>
+    </form>
+  </details>`;
+}
+function actualizarCupos() {
+  const el = $('#slots'); if (!el) { if (S.view === 'elegir' && !$('#formHit')) render(false); return; }
+  const libres = cuposLibres(), enCola = cola().length;
+  el.innerHTML = `<div><b class="num">${libres}</b> <span class="muted">de ${CONFIG.cuposPorBloque} cupos libres en este bloque</span></div>
+    <div><b class="num">~${esperaMin(enCola)}</b> <span class="muted">min de espera aprox. si pides ahora</span></div>
+    <div class="quiet" style="font-size:13px">${enCola} canción(es) en la cola</div>`;
+  const btn = $('#enviar'); if (btn) { btn.disabled = libres === 0 || S.enviando; if (libres === 0) btn.textContent = 'Cupos completos en este bloque'; }
+}
+after.elegir = () => {
+  const nv = $('#nuevaVisita');
+  if (nv) { nv.onclick = () => { ls.set('ptu-visita-' + S.mesa, null); S.sel = null; render(true); }; return; }
+  actualizarCupos();
+  const songs = $('#songs');
+  $('#buscar').addEventListener('input', e => { S.q = e.target.value; songs.innerHTML = listaCanciones(); });
+  document.querySelectorAll('[data-gen]').forEach(b => b.onclick = () => { S.genero = b.dataset.gen; document.querySelectorAll('[data-gen]').forEach(x => x.setAttribute('aria-pressed', x === b)); songs.innerHTML = listaCanciones(); });
+  const itq = $('#itq');
+  if (itq) montarBuscador(itq, $('#itRes'), 'Sugerir', async (c, b) => {
+    if (cancion(c.itId)) { S.sel = c.itId; S.genero = 'Real'; render(false); toast('Ya está en el catálogo: la dejamos elegida.'); return; }
+    if (S.sugerencias.some(s => s.itId === c.itId && s.estado === 'pendiente')) { toast('Esa canción ya está sugerida y pendiente de revisión.'); return; }
+    b.disabled = true;
+    try { await Store.add('sugerencias', { titulo: c.titulo, artista: c.artista, mesa: S.mesa, estado: 'pendiente', ts: Date.now(), itId: c.itId, preview: c.preview, artwork: c.artwork, url: c.url }); b.textContent = 'Sugerida'; toast('Sugerencia enviada. Queda pendiente de revisión.'); }
+    catch { b.disabled = false; toast('No pudimos enviar la sugerencia. Inténtalo de nuevo.'); }
+  });
+  songs.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('[data-song]')) { e.preventDefault(); e.target.click(); } });
+  songs.addEventListener('click', e => {
+    const b = e.target.closest('[data-song]'); if (!b) return;
+    S.sel = b.dataset.song;
+    songs.querySelectorAll('[data-song]').forEach(x => x.setAttribute('aria-checked', x.dataset.song === S.sel));
+    const c = cancion(S.sel); const box = $('#selBox');
+    box.hidden = false; box.innerHTML = cover(c) + '<div><div class="quiet" style="font-size:12px">Tu elección</div><b>' + esc(c.titulo) + '</b> <span class="muted">· ' + esc(c.artista) + '</span></div>';
+    $('#errSong').textContent = '';
+  });
+  $('#verReglas').onclick = e => { e.preventDefault(); const t = $('#reglasTxt'); t.hidden = !t.hidden; };
+  $('#formHit').addEventListener('submit', enviarHit);
+  $('#formSug').addEventListener('submit', enviarSug);
+};
+function validarTexto(v, { min = 0, max, campo }) {
+  const t = v.trim();
+  if (t.length < min) return min === 1 ? 'Escribe ' + campo + '.' : campo.charAt(0).toUpperCase() + campo.slice(1) + ' debe tener al menos ' + min + ' caracteres.';
+  if (t.length > max) return 'Máximo ' + max + ' caracteres.';
+  if (/@|https?:|www\./i.test(t)) return 'No incluyas usuarios de redes ni enlaces.';
+  if (/\d{7,}/.test(t.replace(/\s/g, ''))) return 'No incluyas números de teléfono.';
+  if (tieneBloqueada(t)) return 'Ese texto no cumple las reglas. Prueba con otro.';
+  return '';
+}
+async function enviarHit(e) {
+  e.preventDefault();
+  if (S.enviando) return;
+  const alias = $('#alias').value, ded = $('#ded').value;
+  const eA = validarTexto(alias, { min: 2, max: 20, campo: 'el alias' });
+  const eD = ded.trim() ? validarTexto(ded, { max: 60, campo: 'la dedicatoria' }) : '';
+  const eS = S.sel && cancion(S.sel) ? '' : 'Elige una canción de la lista.';
+  const eR = $('#reglas').checked ? '' : 'Debes aceptar las reglas para participar.';
+  $('#errAlias').textContent = eA; $('#alias').classList.toggle('invalid', !!eA);
+  $('#errDed').textContent = eD; $('#ded').classList.toggle('invalid', !!eD);
+  $('#errSong').textContent = eS; $('#errReglas').textContent = eR;
+  if (eA || eD || eS || eR) { (eA ? $('#alias') : eS ? $('#buscar') : eD ? $('#ded') : $('#reglas')).focus(); return; }
+  if (cuposLibres() === 0) { toast('Cupos completos en este bloque. Intenta en el próximo.'); return; }
+  const c = cancion(S.sel);
+  const codigo = 'PTH-' + String(Math.floor(1000 + Math.random() * 9000));
+  const data = { cancionId: c.id, titulo: c.titulo, artista: c.artista, ...(c.preview ? { preview: c.preview, artwork: c.artwork, url: c.url } : {}), alias: alias.trim(), mesa: S.mesa, dedicatoria: ded.trim(), dedEstado: ded.trim() ? 'pendiente' : 'sin', estado: 'en cola', codigo, ts: Date.now(), origen: 'prueba' };
+  const btn = $('#enviar'); S.enviando = true; btn.disabled = true; btn.textContent = 'Enviando…';
+  try {
+    const p = await Store.add('pedidos', data);
+    const posicion = cola().filter(x => x.ts < data.ts).length;
+    S.ultimo = { ...p, posicion }; ls.set('ptu-ultimo', S.ultimo); ls.set('ptu-alias', alias.trim()); ls.set('ptu-visita-' + S.mesa, p.id);
+    S.sel = null; S.q = ''; S.genero = 'Todos'; S.flashId = c.id;
+    S.view = 'confirmado'; render(true); window.scrollTo({ top: 0, behavior: 'smooth' });
+  } catch (err) {
+    toast('No pudimos registrar tu hit. Revisa la conexión e inténtalo de nuevo.');
+    btn.disabled = false; btn.textContent = 'Confirmar mi hit';
+  } finally { S.enviando = false; }
+}
+async function enviarSug(e) {
+  e.preventDefault();
+  const t = $('#sugT').value, a = $('#sugA').value;
+  const eT = validarTexto(t, { min: 1, max: 60, campo: 'la canción' }), eA = validarTexto(a, { min: 1, max: 60, campo: 'el artista' });
+  $('#errSugT').textContent = eT; $('#errSugA').textContent = eA;
+  if (eT || eA) return;
+  try {
+    await Store.add('sugerencias', { titulo: t.trim(), artista: a.trim(), mesa: S.mesa, estado: 'pendiente', ts: Date.now() });
+    $('#sugT').value = ''; $('#sugA').value = '';
+    toast('Sugerencia enviada. Queda pendiente de revisión.');
+  } catch { toast('No pudimos enviar la sugerencia. Inténtalo de nuevo.'); }
+}
+
+function vConfirmado() {
+  const p = S.ultimo;
+  if (!p) { S.view = 'elegir'; return vElegir(); }
+  const r = ranking(); const pos = r.findIndex(x => x.id === p.cancionId) + 1; const x = r[pos - 1];
+  return `
+  <div class="confirm">
+    <span class="eyebrow">Mesa ${esc(p.mesa)} · ${esc(p.alias)}</span>
+    <h2 class="display">¡Tu hit está en la cola!</h2>
+    <div class="selected-box" style="justify-content:center">${cover(cancion(p.cancionId) || { titulo: p.titulo, genero: '', artwork: p.artwork })}<div style="text-align:left"><b style="font-size:20px">${esc(p.titulo)}</b><div class="muted">${esc(p.artista)}</div>${MUSICA_REAL && p.url ? '<a href="' + esc(p.url) + '" target="_blank" rel="noopener" style="font-size:13px">Abrir en Apple Music</a>' : ''}</div>${MUSICA_REAL ? playBtn({ id: p.cancionId, titulo: p.titulo, preview: p.preview }) : ''}</div>
+    <p style="margin:0;max-width:48ch">Tu canción <b>sumó 1 solicitud</b> al ranking de la semana${x ? `: hoy está en el puesto <b style="color:var(--yellow)">#${pos}</b> con ${x.total} solicitudes` : ''}.</p>
+    <p class="muted" style="margin:0">${p.posicion ? 'Hay ' + p.posicion + ' canción(es) antes que la tuya. Sonaría en ~' + esperaMin(p.posicion) + ' min.' : 'Eres la siguiente en sonar.'} Cuando suene, la pantalla dirá «Ahora suena: pedido de la mesa ${esc(p.mesa)}».</p>
+    ${p.dedicatoria ? '<p class="quiet" style="margin:0;font-size:14px">Tu dedicatoria saldrá en pantalla cuando el encargado la apruebe.</p>' : ''}
+    <div style="display:grid;gap:4px;justify-items:center"><span class="quiet" style="font-size:13px">Tu código de participación</span><span class="code">${esc(p.codigo)}</span><span class="quiet" style="font-size:13px;max-width:44ch">Guárdalo: si tu canción entra al Top 3, lo muestras en caja para retirar tu premio.</span></div>
+    <div class="row" style="justify-content:center"><button class="btn btn-primary" type="button" data-go="redes">Compartir con #PonTuHit</button><button class="btn btn-ghost" type="button" data-go="top">Ver el Top 3</button></div>
+  </div>`;
+}
+
+function vTop() {
+  const r = ranking();
+  const prueba = S.pedidos.length;
+  return `
+  <div class="section-head"><div><span class="eyebrow">Semana actual · se actualiza solo</span><h2 class="display">Top 3 semanal</h2></div>
+    <label class="check" style="font-size:14px"><input type="checkbox" id="chkEj" ${S.incluirEjemplo ? 'checked' : ''}><span>Incluir datos de ejemplo</span></label></div>
+  ${top3Html()}
+  <div class="legend"><span><i style="background:var(--quiet)"></i>Solicitudes de ejemplo (ficticias, ${SEED_TOTAL} en total)</span><span><i style="background:var(--pink)"></i>Participaciones de prueba (${prueba})</span></div>
+  <div class="panel-box">
+    <h3 style="margin-bottom:10px">Resto del ranking</h3>
+    <div class="tbl-wrap"><table><thead><tr><th>#</th><th>Canción</th><th>Artista</th><th class="n">Ejemplo</th><th class="n">Prueba</th><th class="n">Total</th></tr></thead><tbody>
+    ${r.slice(3, 15).map((x, i) => `<tr><td class="num">${i + 4}</td><td>${esc(x.c.titulo)}</td><td class="muted">${esc(x.c.artista)}</td><td class="n quiet">${x.demo}</td><td class="n" style="color:var(--pink)">${x.live}</td><td class="n"><b>${x.total}</b></td></tr>`).join('') || '<tr><td colspan="6" class="quiet">Sin más canciones todavía.</td></tr>'}
+    </tbody></table></div>
+  </div>
+  <div class="notice">Los datos de ejemplo son ficticios y sirven para la demostración. No son resultados reales de Just Burger.</div>`;
+}
+after.top = () => { const c = $('#chkEj'); if (c) c.onchange = () => { S.incluirEjemplo = c.checked; render(false); }; };
+
+function vPremios() {
+  const g = S.estado && S.estado.ganadores;
+  return `
+  <div class="section-head"><div><span class="eyebrow">Etapa 3 de la propuesta</span><h2 class="display">Premios</h2></div></div>
+  <div class="grid-3">
+    <div class="step"><div class="n">1</div><h3>Pide tu hit</h3><p>Cada canción pedida suma una solicitud al ranking de la semana. Guarda tu código de participación.</p></div>
+    <div class="step"><div class="n">2</div><h3>Top 3 del domingo</h3><p>Las 3 canciones más pedidas forman el Top 3. Gana la primera mesa que pidió cada una (regla propuesta).</p></div>
+    <div class="step"><div class="n">3</div><h3>Retira en el local</h3><p>Just avisa a las mesas ganadoras. Muestran su código en caja y retiran papas gratis o un descuento.</p></div>
+  </div>
+  <div class="notice"><b>Propuesta sujeta a aprobación de Just Burger.</b> El tipo de premio, su plazo de canje y la regla de ganadores son definiciones del equipo para el piloto. En este prototipo no se sortea nada, no se entregan premios y no se envían mensajes.</div>
+  <div class="card" style="display:grid;gap:14px">
+    <h3 style="font-size:22px">Ganadores de la semana (demostración)</h3>
+    ${g && g.length ? '<div class="rank">' + g.map((w, i) => `<article class="rank-item p${i + 1}"><div class="pos">${i + 1}</div><div style="min-width:0"><div class="t">${esc(w.titulo)}</div><div class="a">${w.mesa ? 'Mesa ' + esc(w.mesa) + ' · ' + esc(w.alias) : 'Solo solicitudes de ejemplo: sin mesa ganadora'}</div></div><div class="c"><small>${w.mesa ? esc(w.premio) : '—'}</small></div></article>`).join('') + '</div><p class="quiet" style="margin:0;font-size:13px">Calculado el ' + esc(new Date(S.estado.calculado).toLocaleString('es-CL')) + ' desde el panel.</p>'
+      : '<p class="muted" style="margin:0">Todavía no se cierra la semana. En la demostración, el cierre se hace desde el Panel → Premios.</p>'}
+  </div>
+  <div class="panel-box"><h3 style="margin-bottom:8px">Datos para contactar ganadores en una implementación real</h3>
+    <p class="muted" style="margin:0">La propuesta original pide dejar el usuario de Instagram para avisar a los ganadores. Este prototipo no lo pide: usa un alias y un código. Antes de pedir ese dato hay que revisar con Just el consentimiento de menores de edad, la normativa chilena de protección de datos, cuánto tiempo se guarda y quién puede verlo.</p></div>`;
+}
+
+function vRedes() {
+  const p = S.ultimo;
+  const r = ranking().slice(0, 3);
+  const titulo = p ? p.titulo : 'Juntémonos', artista = p ? p.artista : 'La Pandilla Ficticia', mesa = p ? p.mesa : S.mesa;
+  const texto = `¡Sonó nuestro hit en Just Burger! 🎶 «${titulo}» – pedido de la mesa ${mesa}. ¿Y el tuyo? #PonTuHit`;
+  return `
+  <div class="section-head"><div><span class="eyebrow">Etapa 4 · Recuerdo y difusión</span><h2 class="display">#PonTuHit</h2></div></div>
+  <p class="muted" style="margin:0;max-width:62ch">Cuando suene tu canción, sácate una foto con tu mesa frente a la pantalla y súbela a Instagram o TikTok con <b style="color:var(--pink)">#PonTuHit</b> y etiquetando a Just Burger. Estas tarjetas son la referencia de diseño para historias y publicaciones.</p>
+  <div class="grid-2" style="align-items:start">
+    <div style="display:grid;gap:12px;justify-items:center">
+      <div class="story" aria-label="Tarjeta para historia: tu hit">
+        <div class="row" style="justify-content:space-between"><span class="mark" style="font-size:16px">Just<br>Burger</span><span class="mono" style="font-size:12px;color:var(--muted)">MESA ${esc(mesa)}</span></div>
+        <div style="display:grid;gap:8px">
+          <div class="k" style="color:var(--pink);font-size:34px">Ahora suena</div>
+          <div class="k" style="color:var(--yellow);font-size:52px">Nuestro hit</div>
+          <div style="font-weight:800;font-size:20px">${esc(titulo)}</div>
+          <div class="muted">${esc(artista)}</div>
+        </div>
+        <div style="display:grid;gap:4px"><div class="k" style="font-size:28px">#PonTuHit</div><div class="quiet" style="font-size:11px">Diseño de referencia · logo provisional</div></div>
+      </div>
+      <span class="quiet" style="font-size:13px">${p ? 'Tarjeta con tu último hit' : 'Ejemplo: pide un hit para personalizarla'}</span>
+    </div>
+    <div style="display:grid;gap:12px;justify-items:center">
+      <div class="story story-top3" aria-label="Tarjeta para historia: Top 3 semanal">
+        <div style="color:var(--ink-on-yellow);display:grid;gap:2px"><span class="k" style="font-size:22px">Just Burger</span><span class="k" style="font-size:58px">Top 3</span><span style="font-weight:800">de la semana</span></div>
+        <div style="display:grid;gap:12px">
+          ${r.map((x, i) => `<div style="display:grid;grid-template-columns:34px 1fr;gap:8px;align-items:center"><span class="k" style="font-size:38px;color:${i ? 'var(--pink)' : 'var(--yellow)'}">${i + 1}</span><span><b style="display:block">${esc(x.c.titulo)}</b><span class="muted" style="font-size:13px">${esc(x.c.artista)}</span></span></div>`).join('')}
+        </div>
+        <div style="display:grid;gap:4px"><div class="k" style="font-size:24px">#PonTuHit</div><div class="quiet" style="font-size:11px">Incluye datos de ejemplo ficticios</div></div>
+      </div>
+      <span class="quiet" style="font-size:13px">Se actualiza con el ranking</span>
+    </div>
+  </div>
+  <div class="card" style="display:grid;gap:12px">
+    <label class="lbl" for="txtPost">Texto sugerido para tu publicación</label>
+    <textarea class="input" id="txtPost" rows="2" readonly>${esc(texto)}</textarea>
+    <div class="row"><button class="btn btn-primary btn-sm" type="button" id="copiar">Copiar texto</button>${socialBtns()}</div>
+    <p class="quiet" style="margin:0;font-size:13px">Este prototipo no publica nada automáticamente ni está conectado a Instagram o TikTok. Tú decides si compartes.</p>
+  </div>`;
+}
+after.redes = () => {
+  $('#copiar').onclick = async () => {
+    const t = $('#txtPost');
+    try { await navigator.clipboard.writeText(t.value); toast('Texto copiado.'); }
+    catch { t.focus(); t.select(); toast('Selecciona el texto y cópialo con tu teclado.'); }
+  };
+};
+
+function vPantalla() {
+  const s = sonando();
+  const r = ranking().slice(0, 3);
+  const url = urlMesa(S.mesa);
+  const ded = s && s.dedEstado === 'aprobada' ? s.dedicatoria : '';
+  return `
+  <div class="section-head"><div><span class="eyebrow">Simulación de la pantalla del local · sin audio</span><h2 class="display">Pantalla</h2></div><button class="btn btn-ghost btn-sm" type="button" id="fs">Pantalla completa</button></div>
+  <div class="tv" id="tv"><div class="tv-inner">
+    <div style="display:grid;gap:12px;min-width:0">
+      ${s ? `<div class="row" style="gap:10px"><span class="eq" aria-hidden="true"><span></span><span></span><span></span><span></span></span><span class="now">Ahora suena</span></div>
+      <div class="who">Pedido de la mesa ${esc(s.mesa)}</div>
+      <div class="song">${esc(s.titulo)} <span class="muted">· ${esc(s.artista)}</span></div>
+      <div class="muted">por ${esc(s.alias)}</div>
+      ${ded ? '<div class="ded">«' + esc(ded) + '»</div>' : ''}`
+      : `<div class="now">Pon tu hit</div><div class="who">Escanea y elige tu canción</div><div class="song">Una canción por mesa · ${cuposLibres()} cupos libres</div>`}
+      <div style="border-top:1px solid var(--line);padding-top:12px;display:flex;gap:18px;flex-wrap:wrap;font-size:15px">
+        <span class="eyebrow" style="color:var(--yellow)">Top 3</span>${r.map((x, i) => `<span><b>${i + 1}.</b> ${esc(x.c.titulo)}</span>`).join('')}
+      </div>
+    </div>
+    <div style="display:grid;gap:8px;justify-items:center">
+      ${url ? '<div class="qr-box" id="qrTv"></div>' : ''}
+      <span class="mono" style="font-size:13px">Mesa ${esc(S.mesa)} · #PonTuHit</span>
+    </div>
+  </div></div>
+  ${MUSICA_REAL ? `<div class="panel-box row" style="justify-content:space-between">
+    <div style="display:grid;gap:2px;min-width:0"><b>Sonido de la pantalla</b><span class="muted" style="font-size:14px">${S.sonido ? 'Activado: cada canción real que pase a pantalla suena 30 s (fragmento de Apple Music).' : 'Actívalo en el computador conectado a los parlantes. Las canciones ficticias no tienen audio.'}</span>${s && s.url ? '<a href="' + esc(s.url) + '" target="_blank" rel="noopener" style="font-size:13px">Abrir «' + esc(s.titulo) + '» en Apple Music</a>' : ''}</div>
+    <div class="row">${s && s.preview ? `<button class="btn btn-ghost btn-sm" type="button" id="otraVez">Reproducir de nuevo</button>` : ''}<button class="btn ${S.sonido ? 'btn-ghost' : 'btn-primary'} btn-sm" type="button" id="sonido">${S.sonido ? 'Silenciar' : 'Activar sonido'}</button></div>
+  </div>` : ''}
+  <div class="notice">La canción en pantalla la controla el encargado desde Panel → Cola. Las dedicatorias aparecen solo si fueron aprobadas.${url ? '' : ' El QR aparece cuando el prototipo se abre desde una dirección web real.'}${MUSICA_REAL ? ' En un local real, la canción completa sonaría desde el servicio de música con licencia de Just; aquí suenan fragmentos de 30 s para la demostración.' : ''}</div>`;
+}
+after.pantalla = () => {
+  const u = urlMesa(S.mesa); if (u && $('#qrTv')) qr($('#qrTv'), u, 150);
+  if (MUSICA_REAL) {
+    const s = sonando();
+    const tocar = () => { if (s && s.preview) { audio.src = s.preview; playingId = s.cancionId; audio.play().catch(() => toast('Toca «Activar sonido» para permitir el audio.')); S.ultimoSonado = s.id; } };
+    $('#sonido').onclick = () => { S.sonido = !S.sonido; if (S.sonido) { S.ultimoSonado = null; tocar(); } else detener(); render(false); };
+    const ov = $('#otraVez'); if (ov) ov.onclick = tocar;
+    if (S.sonido && s && s.id !== S.ultimoSonado) tocar();
+    if (S.sonido && !s) detener();
+  }
+  $('#fs').onclick = () => { const tv = $('#tv'); if (tv.requestFullscreen) tv.requestFullscreen().catch(() => toast('Tu navegador no permite pantalla completa aquí.')); else toast('Tu navegador no permite pantalla completa aquí.'); };
+};
+function qr(el, text, size) {
+  el.innerHTML = '';
+  if (!window.QRCode) { el.outerHTML = '<span class="quiet">No se pudo cargar el generador de QR.</span>'; return; }
+  try { new window.QRCode(el, { text, width: size, height: size, colorDark: '#2b0f2c', colorLight: '#ffffff', correctLevel: window.QRCode.CorrectLevel.M }); }
+  catch { el.textContent = 'No se pudo generar el QR.'; }
+}
+
+/* ---------- Panel ---------- */
+function vPanel() {
+  if (!S.panelOk) return `
+    <div class="card" style="max-width:440px;margin:20px auto;display:grid;gap:14px">
+      <span class="eyebrow">Acceso del equipo Just Burger</span>
+      <h2 class="display" style="font-size:40px;color:var(--yellow)">Panel privado</h2>
+      <form id="formPin" class="form" novalidate>
+        <div class="field"><label for="pin">PIN de demostración</label><input class="input mono" id="pin" inputmode="numeric" maxlength="8" autocomplete="off"><span class="hint">Para la demo, el PIN está en el README. Es una protección básica, no seguridad real.</span><span class="err" id="errPin"></span></div>
+        <button class="btn btn-primary" type="submit">Entrar</button>
+      </form>
+    </div>`;
+  const live = S.pedidos, n = live.length;
+  const mesas = new Map(); live.forEach(p => mesas.set(p.mesa, (mesas.get(p.mesa) || 0) + 1));
+  const sem = inicioSemana();
+  const porDia = DIAS.map((_, i) => live.filter(p => p.ts >= sem && diaIdx(p.ts) === i).length);
+  const espera = live.filter(p => p.sonoTs).map(p => (p.sonoTs - p.ts) / 60000);
+  const espProm = espera.length ? Math.round(espera.reduce((a, b) => a + b, 0) / espera.length) : null;
+  const pend = S.sugerencias.filter(s => s.estado === 'pendiente');
+  const r = ranking();
+  const q = cola(); const sn = sonando();
+  return `
+  <div class="section-head"><div><span class="eyebrow">Panel privado · demostración</span><h2 class="display">Panel Pon tu hit</h2></div>
+    <div class="row"><label class="check" style="font-size:14px"><input type="checkbox" id="chkEj2" ${S.incluirEjemplo ? 'checked' : ''}><span>Ranking con datos de ejemplo</span></label><button class="btn btn-ghost btn-sm" type="button" id="salir">Cerrar panel</button></div></div>
+
+  <div class="kpis">
+    <div class="kpi"><span>Participaciones de prueba</span><b class="num" style="color:var(--pink)">${n}</b><small>+ ${SEED_TOTAL} de ejemplo (ficticias)</small></div>
+    <div class="kpi"><span>Mesas que participaron</span><b class="num">${mesas.size}</b><small>en datos de prueba</small></div>
+    <div class="kpi"><span>En cola ahora</span><b class="num">${q.length}</b><small>${cuposLibres()} de ${CONFIG.cuposPorBloque} cupos libres</small></div>
+    <div class="kpi"><span>Espera promedio</span><b class="num">${espProm == null ? '—' : espProm + ' min'}</b><small>del pedido a «sonó»</small></div>
+  </div>
+
+  <div class="grid-2">
+    <div class="panel-box" style="display:grid;gap:12px"><h3>Top 3 semanal</h3>${top3Html({ bars: false })}</div>
+    <div class="panel-box" style="display:grid;gap:10px">
+      <h3>Evolución de solicitudes · esta semana</h3>
+      ${chartDias(porDia)}
+      <div class="legend"><span><i style="background:var(--quiet)"></i>Ejemplo</span><span><i style="background:var(--pink)"></i>Prueba</span></div>
+    </div>
+  </div>
+
+  <div class="panel-box" style="display:grid;gap:12px" id="colaBox">
+    <div class="section-head"><h3>Cola del bloque y pantalla</h3><button class="btn btn-primary btn-sm" type="button" id="siguiente" ${q.length ? '' : 'disabled'}>${sn ? 'Marcar como sonada y pasar a la siguiente' : 'Poner la primera canción en pantalla'}</button></div>
+    <div class="tbl-wrap"><table><thead><tr><th>Hora</th><th>Mesa</th><th>Alias</th><th>Canción</th><th>Dedicatoria</th><th>Estado</th></tr></thead><tbody>
+    ${q.length ? q.map(p => `<tr><td class="num">${hora(p.ts)}</td><td class="mono">${esc(p.mesa)}</td><td>${esc(p.alias)}</td><td><b>${esc(p.titulo)}</b><div class="quiet" style="font-size:13px">${esc(p.artista)}</div></td>
+      <td>${p.dedicatoria ? esc(p.dedicatoria) + '<div class="row" style="gap:6px;margin-top:6px">' + (p.dedEstado === 'pendiente' ? `<button class="btn btn-ghost btn-sm" data-ded="${esc(p.id)}" data-v="aprobada">Aprobar</button><button class="btn btn-ghost btn-sm" data-ded="${esc(p.id)}" data-v="oculta">Ocultar</button>` : `<span class="tag ${p.dedEstado === 'aprobada' ? 'tag-ok' : 'tag-bad'}">${esc(p.dedEstado)}</span>`) + '</div>' : '<span class="quiet">—</span>'}</td>
+      <td><span class="tag ${p.estado === 'sonando' ? 'tag-ok' : 'tag-warn'}">${esc(p.estado)}</span></td></tr>`).join('') : '<tr><td colspan="6" class="quiet">No hay canciones en cola. Pide un hit desde «Pon tu hit» para verlo aquí.</td></tr>'}
+    </tbody></table></div>
+  </div>
+
+  <div class="grid-2">
+    <div class="panel-box" style="display:grid;gap:10px"><h3>Canciones más solicitadas</h3>
+      <div class="tbl-wrap"><table><thead><tr><th>#</th><th>Canción</th><th class="n">Ejemplo</th><th class="n">Prueba</th><th class="n">Total</th></tr></thead><tbody>
+      ${r.slice(0, 10).map((x, i) => `<tr><td class="num">${i + 1}</td><td>${esc(x.c.titulo)}<div class="quiet" style="font-size:13px">${esc(x.c.artista)}</div></td><td class="n quiet">${x.demo}</td><td class="n" style="color:var(--pink)">${x.live}</td><td class="n"><b>${x.total}</b></td></tr>`).join('')}
+      </tbody></table></div></div>
+    <div class="panel-box" style="display:grid;gap:10px"><h3>Participaciones por mesa (prueba)</h3>
+      ${mesas.size ? chartMesas([...mesas.entries()].sort((a, b) => a[0].localeCompare(b[0]))) : '<p class="quiet" style="margin:0">Aún no hay participaciones de prueba.</p>'}
+    </div>
+  </div>
+
+  <div class="panel-box" style="display:grid;gap:12px">
+    <div class="section-head"><h3>Catálogo de canciones reales</h3><span class="tag ${MUSICA_REAL ? 'tag-ok' : 'tag-warn'}">${MUSICA_REAL ? catalogo().filter(c => c.genero === 'Real').length + ' en catálogo' : 'no disponible aquí'}</span></div>
+    ${MUSICA_REAL ? `<p class="quiet" style="margin:0;font-size:14px">Busca en Apple Music y agrega canciones al catálogo que ven las mesas. Los resultados con contenido explícito se ocultan solos, pero revisa igual cada canción antes de agregarla.</p>
+    <input class="input" id="itqAdmin" type="search" autocomplete="off" placeholder="Buscar canción o artista en Apple Music" aria-label="Buscar en Apple Music">
+    <div id="itResAdmin"></div>`
+    : `<p class="quiet" style="margin:0;font-size:14px">Dentro de claude.ai el navegador bloquea el audio de otros sitios. Las canciones reales con fragmentos de 30 s funcionan en la versión publicada en GitHub Pages o en el servidor local (ver README).</p>`}
+  </div>
+
+  <div class="panel-box" style="display:grid;gap:12px">
+    <div class="section-head"><h3>Canciones sugeridas por usuarios</h3><span class="tag tag-warn">${pend.length} pendiente(s)</span></div>
+    <p class="quiet" style="margin:0;font-size:14px">Nada entra al catálogo sin aprobación. Revisa que la canción exista, que su letra sea apta para menores y que no sea ofensiva.</p>
+    <div class="tbl-wrap"><table><thead><tr><th>Hora</th><th>Mesa</th><th>Canción</th><th>Artista</th><th>Estado</th><th></th></tr></thead><tbody>
+    ${S.sugerencias.length ? [...S.sugerencias].reverse().map(s => `<tr><td class="num">${hora(s.ts)}</td><td class="mono">${esc(s.mesa || '—')}</td><td><div class="row" style="gap:8px;flex-wrap:nowrap">${MUSICA_REAL ? playBtn({ id: s.itId, titulo: s.titulo, preview: s.preview }) : ''}<b>${esc(s.titulo)}</b></div>${s.origen === 'encargado' ? '<span class="quiet" style="font-size:12px">agregada por el encargado</span>' : ''}</td><td>${esc(s.artista)}</td>
+      <td><span class="tag ${s.estado === 'aprobada' ? 'tag-ok' : s.estado === 'rechazada' ? 'tag-bad' : 'tag-warn'}">${esc(s.estado)}</span></td>
+      <td>${s.estado === 'pendiente' ? `<div class="row" style="gap:6px"><button class="btn btn-ghost btn-sm" data-sug="${esc(s.id)}" data-v="aprobada">Aprobar</button><button class="btn btn-ghost btn-sm" data-sug="${esc(s.id)}" data-v="rechazada">Rechazar</button></div>` : ''}</td></tr>`).join('') : '<tr><td colspan="6" class="quiet">Sin sugerencias todavía. Se envían desde «Pon tu hit» → «¿No está tu canción?».</td></tr>'}
+    </tbody></table></div>
+  </div>
+
+  <div class="panel-box" style="display:grid;gap:12px">
+    <div class="section-head"><h3>Premios · cierre de semana (simulación)</h3><button class="btn btn-pink btn-sm" type="button" id="cerrarSemana">Calcular ganadores de la semana</button></div>
+    <p class="quiet" style="margin:0;font-size:14px">Toma el Top 3 actual. Por cada canción, gana la primera mesa de prueba que la pidió (regla propuesta). Genera una vista previa del aviso, pero <b>no envía mensajes</b>.</p>
+    <div id="dmPrev">${dmPreview()}</div>
+  </div>
+
+  <div class="grid-2">
+    <div class="panel-box" style="display:grid;gap:12px">
+      <h3>QR de mesa</h3>
+      <div class="row"><label class="lbl" for="mesaQr">Mesa</label><input class="input mono" id="mesaQr" style="width:90px" inputmode="numeric" maxlength="3" value="${esc(S.mesa)}"><button class="btn btn-ghost btn-sm" type="button" id="genQr">Generar</button></div>
+      <div id="qrOut"></div>
+    </div>
+    <div class="panel-box" style="display:grid;gap:12px">
+      <h3>Reiniciar datos de prueba</h3>
+      <p class="muted" style="margin:0;font-size:14px">Borra participaciones, sugerencias y ganadores de prueba${S.mode === 'compartido' ? ' para todas las personas que usan este prototipo' : ' de este navegador'}. Los datos de ejemplo no se borran.</p>
+      <div class="field"><label for="confReset">Escribe REINICIAR para confirmar</label><input class="input mono" id="confReset" autocomplete="off"></div>
+      <div><button class="btn btn-danger btn-sm" type="button" id="reset" disabled>Reiniciar datos de prueba</button></div>
+    </div>
+  </div>
+  <div class="notice">Estadísticas generales: ${n + SEED_TOTAL} solicitudes en total (${SEED_TOTAL} de ejemplo + ${n} de prueba) · ${r.length} canciones distintas pedidas · ${S.sugerencias.filter(s => s.estado === 'aprobada').length} sugerencias aprobadas · Datos ${S.mode === 'compartido' ? 'compartidos en línea' : 'locales de este navegador'}.</div>`;
+}
+function chartDias(porDia) {
+  const W = 520, H = 200, padL = 30, padB = 26, top = 12;
+  const tot = porDia.map((v, i) => v + (S.incluirEjemplo ? SEED_POR_DIA[i] : 0));
+  const max = Math.max(5, ...tot); const paso = max > 40 ? 20 : max > 20 ? 10 : 5; const ymax = Math.ceil(max / paso) * paso;
+  const bw = (W - padL - 10) / 7;
+  const y = v => top + (H - padB - top) * (1 - v / ymax);
+  let g = '';
+  for (let t = 0; t <= ymax; t += paso) g += `<line x1="${padL}" x2="${W - 4}" y1="${y(t)}" y2="${y(t)}" stroke="var(--line)" stroke-width="1"/><text x="${padL - 6}" y="${y(t) + 4}" text-anchor="end" font-size="11">${t}</text>`;
+  DIAS.forEach((d, i) => {
+    const x = padL + i * bw + bw * .2, w = bw * .6, dv = S.incluirEjemplo ? SEED_POR_DIA[i] : 0, lv = porDia[i];
+    g += `<rect x="${x}" y="${y(dv)}" width="${w}" height="${y(0) - y(dv)}" rx="3" fill="var(--quiet)" opacity=".55"/>`;
+    if (lv) g += `<rect x="${x}" y="${y(dv + lv)}" width="${w}" height="${y(dv) - y(dv + lv)}" rx="3" fill="var(--pink)"/>`;
+    g += `<text x="${x + w / 2}" y="${H - 8}" text-anchor="middle" font-size="12">${d}</text>`;
+    if (dv + lv) g += `<text x="${x + w / 2}" y="${y(dv + lv) - 5}" text-anchor="middle" font-size="11" style="fill:var(--fg)">${dv + lv}</text>`;
+  });
+  return `<div class="tbl-wrap"><svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Solicitudes por día de la semana">${g}</svg></div>`;
+}
+function chartMesas(rows) {
+  const max = Math.max(...rows.map(r => r[1]));
+  return '<div style="display:grid;gap:8px">' + rows.map(([m, v]) => `<div style="display:grid;grid-template-columns:72px 1fr 32px;gap:10px;align-items:center;font-size:14px"><span class="mono">Mesa ${esc(m)}</span><span style="background:var(--bg-2);border-radius:6px;height:14px;overflow:hidden"><i style="display:block;height:100%;width:${(v / max) * 100}%;background:var(--pink);border-radius:6px"></i></span><b class="num" style="text-align:right">${v}</b></div>`).join('') + '</div>';
+}
+function dmPreview() {
+  const g = S.estado && S.estado.ganadores;
+  if (!g || !g.length) return '<p class="quiet" style="margin:0">Todavía no se calculan ganadores.</p>';
+  return '<div class="grid-3">' + g.map((w, i) => w.mesa ? `<div class="dm"><div class="head">Vista previa del aviso <small>no enviado</small></div><div class="bubble">¡Hola, ${esc(w.alias)}! 🎉 Tu hit «${esc(w.titulo)}» quedó #${i + 1} en el Top 3 de la semana en Just Burger. Muestra el código <b>${esc(w.codigo)}</b> en caja y retira: ${esc(w.premio)}. Válido solo en el local. #PonTuHit</div><small style="color:#777">Mesa ${esc(w.mesa)} · simulación, no se envía a nadie</small></div>`
+    : `<div class="dm"><div class="head">#${i + 1} ${esc(w.titulo)}</div><div class="bubble">Esta canción está en el Top 3 solo por datos de ejemplo. No hay mesa ganadora de prueba.</div></div>`).join('') + '</div>';
+}
+after.panel = () => {
+  const fp = $('#formPin');
+  if (fp) {
+    fp.addEventListener('submit', e => { e.preventDefault(); if ($('#pin').value.trim() === CONFIG.pinPanel) { S.panelOk = true; ls.set('ptu-panel-ok', true); render(true); } else { $('#errPin').textContent = 'PIN incorrecto.'; $('#pin').classList.add('invalid'); } });
+    $('#pin').focus(); return;
+  }
+  const itqA = $('#itqAdmin');
+  if (itqA) montarBuscador(itqA, $('#itResAdmin'), 'Agregar', async (c, b) => {
+    if (cancion(c.itId)) { toast('Esa canción ya está en el catálogo.'); return; }
+    b.disabled = true;
+    try { await Store.add('sugerencias', { titulo: c.titulo, artista: c.artista, mesa: '', estado: 'aprobada', origen: 'encargado', ts: Date.now(), itId: c.itId, preview: c.preview, artwork: c.artwork, url: c.url }); b.textContent = 'Agregada'; toast('Agregada al catálogo de las mesas.'); }
+    catch { b.disabled = false; toast('No se pudo agregar. Inténtalo de nuevo.'); }
+  });
+  $('#salir').onclick = () => { S.panelOk = false; ls.set('ptu-panel-ok', false); go('inicio'); };
+  $('#chkEj2').onchange = e => { S.incluirEjemplo = e.target.checked; render(false); };
+  $('#siguiente').onclick = async e => {
+    e.target.disabled = true;
+    try {
+      const sn = sonando(); if (sn) await Store.upd('pedidos', sn.id, { estado: 'sonó', sonoTs: Date.now() });
+      const next = cola().find(p => p.estado !== 'sonando' && (!sn || p.id !== sn.id));
+      if (next) { await Store.upd('pedidos', next.id, { estado: 'sonando' }); toast('En pantalla: mesa ' + next.mesa + ' · ' + next.titulo); }
+      else toast('La cola quedó vacía.');
+    } catch { toast('No se pudo actualizar la cola. Inténtalo de nuevo.'); e.target.disabled = false; }
+  };
+  document.querySelectorAll('[data-ded]').forEach(b => b.onclick = async () => { try { await Store.upd('pedidos', b.dataset.ded, { dedEstado: b.dataset.v }); } catch { toast('No se pudo guardar.'); } });
+  document.querySelectorAll('[data-sug]').forEach(b => b.onclick = async () => { try { await Store.upd('sugerencias', b.dataset.sug, { estado: b.dataset.v }); toast(b.dataset.v === 'aprobada' ? 'Sugerencia aprobada: ya está en el catálogo.' : 'Sugerencia rechazada.'); } catch { toast('No se pudo guardar.'); } });
+  $('#cerrarSemana').onclick = async () => {
+    const top = ranking().slice(0, 3);
+    const premios = ['Papas gratis para la mesa (hasta 4 porciones)', 'Papas gratis para la mesa (hasta 4 porciones)', 'Descuento en tu próxima compra'];
+    const ganadores = top.map((x, i) => {
+      const prim = S.pedidos.filter(p => p.cancionId === x.id).sort((a, b) => a.ts - b.ts)[0];
+      return prim ? { titulo: x.c.titulo, mesa: prim.mesa, alias: prim.alias, codigo: prim.codigo, premio: premios[i] } : { titulo: x.c.titulo, mesa: null };
+    });
+    try { await Store.setEstado({ ganadores, calculado: Date.now() }); toast('Ganadores calculados (simulación). No se envió ningún mensaje.'); } catch { toast('No se pudo guardar el cierre.'); }
+  };
+  const genQr = () => {
+    const v = $('#mesaQr').value.trim(); const out = $('#qrOut');
+    if (!/^\d{1,3}$/.test(v)) { out.innerHTML = '<span class="err">Escribe un número de mesa (1 a 3 dígitos).</span>'; return; }
+    const m = pad2(parseInt(v, 10)), u = urlMesa(m);
+    if (!u) { out.innerHTML = '<div class="notice">Para generar un QR real, abre el prototipo desde su dirección web (servidor local o enlace publicado). No se genera un QR hacia una dirección que no funcione.</div>'; return; }
+    out.innerHTML = '<div class="row" style="align-items:start"><div class="qr-box" id="qrM"></div><div style="display:grid;gap:6px;min-width:0"><b>Mesa ' + esc(m) + '</b><span class="mono" style="font-size:12px;overflow-wrap:anywhere">' + esc(u) + '</span><span class="quiet" style="font-size:13px">Imprímelo en el cartel de mesa o en el papel de la bandeja.</span></div></div>';
+    qr($('#qrM'), u, 160);
+  };
+  $('#genQr').onclick = genQr; genQr();
+  const cr = $('#confReset'), rb = $('#reset');
+  cr.addEventListener('input', () => { rb.disabled = cr.value.trim().toUpperCase() !== 'REINICIAR'; });
+  rb.onclick = async () => {
+    rb.disabled = true; rb.textContent = 'Reiniciando…';
+    try {
+      await Store.reset();
+      try { Object.keys(localStorage).filter(k => k.startsWith('ptu-visita-') || k === 'ptu-ultimo').forEach(k => localStorage.removeItem(k)); } catch {}
+      S.ultimo = null; toast('Datos de prueba reiniciados.'); render(false);
+    } catch { toast('No se pudieron reiniciar todos los datos. Inténtalo de nuevo.'); rb.textContent = 'Reiniciar datos de prueba'; }
+  };
+};
+
+/* ================= Inicio ================= */
+leerMesa();
+$('#attrLine').hidden = !MUSICA_REAL;
+window.addEventListener('hashchange', () => { leerMesa(); render(true); });
+Store.init();
+})();
+</script>
+
+</body>
+</html>
