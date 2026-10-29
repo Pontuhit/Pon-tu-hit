@@ -307,7 +307,12 @@ const CONFIG = {
   // Enlaces de redes: dejar vacío hasta tener los oficiales de Just Burger.
   instagram: '',
   tiktok: '',
+  // Base de datos compartida para la versión pública (Supabase). Ver supabase.sql y el README.
+  // La clave "publishable" o "anon" está hecha para ir en la página; nunca pongas aquí la clave secreta (service_role).
+  supabaseUrl: 'https://zkrcfpmchbwxdcoixtaa.supabase.co',
+  supabaseKey: 'sb_publishable_vG8XJCCHKMjUCMgzybaswA_K5TP2cMw',
 };
+const SUPA_CDN = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/dist/umd/supabase.min.js';
 
 /* ================= Catálogo ficticio ================= */
 const GENEROS = ['Pop', 'Urbano', 'Reggaetón', 'Rock', 'Indie', 'Cumbia', 'Electrónica'];
@@ -421,6 +426,8 @@ const S = {
   enviando: false,
 };
 S.panelOk = !!ls.get('ptu-panel-ok', false);
+S.pin = ls.get('ptu-pin', '') || '';
+if (CONFIG.supabaseUrl && !S.pin) S.panelOk = false;
 S.ultimo = ls.get('ptu-ultimo', null);
 
 function leerMesa() {
@@ -437,9 +444,28 @@ function leerMesa() {
 
 /* ================= Almacenamiento ================= */
 const LKEY = 'ptu-datos-v1';
+function cargarScript(src) {
+  return new Promise((ok, mal) => { const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = mal; document.head.appendChild(s); });
+}
 const Store = {
   db: null,
+  sb: null,
   async init() {
+    if (!window.claude && CONFIG.supabaseUrl && CONFIG.supabaseKey) {
+      try {
+        await cargarScript(SUPA_CDN);
+        this.sb = window.supabase.createClient(CONFIG.supabaseUrl, CONFIG.supabaseKey, { auth: { persistSession: false } });
+        await this.sbLeer();
+        S.mode = 'supabase';
+        let t; const pedir = () => { clearTimeout(t); t = setTimeout(() => this.sbLeer().then(onData).catch(() => {}), 150); };
+        this.sb.channel('ptu').on('postgres_changes', { event: '*', schema: 'public', table: 'ptu_docs' }, pedir).subscribe();
+        setInterval(pedir, 10000); // respaldo por si el tiempo real se corta
+        S.ready = true; pintarModo(); onData(); return;
+      } catch (e) {
+        this.sb = null;
+        toast('No se pudo conectar con la base de datos compartida; la demo sigue en este dispositivo.');
+      }
+    }
     let db = null, puede = null;
     try {
       if (window.claude && typeof window.claude.use === 'function') {
@@ -476,7 +502,26 @@ const Store = {
     if (!ok) toast('Este navegador no permite guardar datos; la prueba se perderá al recargar.');
   },
   nid() { return 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); },
-  async add(col, data) {
+  async sbLeer() {
+    const { data, error } = await this.sb.from('ptu_docs').select('id,col,data,created_at').order('created_at').limit(2000);
+    if (error) throw error;
+    S.pedidos = data.filter(r => r.col === 'pedidos').map(r => ({ id: r.id, ...r.data }));
+    S.sugerencias = data.filter(r => r.col === 'sugerencias').map(r => ({ id: r.id, ...r.data }));
+    const e = data.filter(r => r.col === 'estado').pop(); S.estado = e ? { ...e.data } : {};
+  },
+  async rpc(fn, args) {
+    const { data, error } = await this.sb.rpc(fn, { p_pin: S.pin || '', ...args });
+    if (error) { if (/pin/i.test(error.message || '')) { S.panelOk = false; ls.set('ptu-panel-ok', false); toast('El PIN no es válido. Vuelve a entrar al panel.'); render(false); } throw error; }
+    await this.sbLeer(); onData(); return data;
+  },
+  async add(col, data, opts = {}) {
+    if (this.sb) {
+      if (opts.admin) { const id = await this.rpc('ptu_admin_insert', { p_col: col, p_data: data }); return { id, ...data }; }
+      const id = crypto.randomUUID();
+      const { error } = await this.sb.from('ptu_docs').insert({ id, col, data });
+      if (error) throw error;
+      await this.sbLeer(); onData(); return { id, ...data };
+    }
     if (this.db) {
       try { const ref = await this.db.collection(col).add(data); return { id: ref.id, ...data }; }
       catch (e) { if (e && (e.code === 'invalid_argument' || e.code === 'not_granted' || e.code === 'revoked')) { this.aLocal('Sin permiso para escribir datos compartidos; la prueba sigue en este dispositivo.'); } else throw e; }
@@ -485,14 +530,17 @@ const Store = {
     S[col].push(item); this.guardarLocal(); onData(); return item;
   },
   async upd(col, id, patch) {
+    if (this.sb) { await this.rpc('ptu_admin_update', { p_id: id, p_patch: patch }); return; }
     if (this.db) { await this.db.collection(col).doc(id).update(patch); return; }
     const it = S[col].find(x => x.id === id); if (it) Object.assign(it, patch); this.guardarLocal(); onData();
   },
   async setEstado(obj) {
+    if (this.sb) { await this.rpc('ptu_admin_set_estado', { p_data: obj }); return; }
     if (this.db) { await this.db.doc('estado/semana').set(obj); return; }
     S.estado = obj; this.guardarLocal(); onData();
   },
   async reset() {
+    if (this.sb) { await this.rpc('ptu_admin_reset', {}); return; }
     if (this.db) {
       for (const p of [...S.pedidos]) await this.db.collection('pedidos').doc(p.id).delete();
       for (const s of [...S.sugerencias]) await this.db.collection('sugerencias').doc(s.id).delete();
@@ -503,7 +551,9 @@ const Store = {
   },
 };
 function pintarModo() {
-  $('#modeLine').textContent = S.mode === 'compartido'
+  $('#modeLine').textContent = S.mode === 'supabase'
+    ? 'Datos: compartidos en vivo entre todos los dispositivos (base de datos de la demostración).'
+    : S.mode === 'compartido'
     ? 'Datos: compartidos en línea entre quienes abren este prototipo.'
     : 'Datos: guardados solo en este navegador (modo local de demostración).';
 }
@@ -1021,7 +1071,7 @@ function vPanel() {
       <span class="eyebrow">Acceso del equipo Just Burger</span>
       <h2 class="display" style="font-size:40px;color:var(--yellow)">Panel privado</h2>
       <form id="formPin" class="form" novalidate>
-        <div class="field"><label for="pin">PIN de demostración</label><input class="input mono" id="pin" inputmode="numeric" maxlength="8" autocomplete="off"><span class="hint">Para la demo, el PIN está en el README. Es una protección básica, no seguridad real.</span><span class="err" id="errPin"></span></div>
+        <div class="field"><label for="pin">PIN de demostración</label><input class="input mono" id="pin" inputmode="numeric" maxlength="8" autocomplete="off"><span class="hint">${Store.sb ? 'El PIN se revisa en la base de datos y no aparece en el código de la página. Es una protección básica, no un sistema de cuentas.' : 'Para la demo, el PIN está en el README. Es una protección básica, no seguridad real.'}</span><span class="err" id="errPin"></span></div>
         <button class="btn btn-primary" type="submit">Entrar</button>
       </form>
     </div>`;
@@ -1105,7 +1155,7 @@ function vPanel() {
     </div>
     <div class="panel-box" style="display:grid;gap:12px">
       <h3>Reiniciar datos de prueba</h3>
-      <p class="muted" style="margin:0;font-size:14px">Borra participaciones, sugerencias y ganadores de prueba${S.mode === 'compartido' ? ' para todas las personas que usan este prototipo' : ' de este navegador'}. Los datos de ejemplo no se borran.</p>
+      <p class="muted" style="margin:0;font-size:14px">Borra participaciones, sugerencias y ganadores de prueba${S.mode !== 'local' ? ' para todas las personas que usan este prototipo' : ' de este navegador'}. Los datos de ejemplo no se borran.</p>
       <div class="field"><label for="confReset">Escribe REINICIAR para confirmar</label><input class="input mono" id="confReset" autocomplete="off"></div>
       <div><button class="btn btn-danger btn-sm" type="button" id="reset" disabled>Reiniciar datos de prueba</button></div>
     </div>
@@ -1142,17 +1192,29 @@ function dmPreview() {
 after.panel = () => {
   const fp = $('#formPin');
   if (fp) {
-    fp.addEventListener('submit', e => { e.preventDefault(); if ($('#pin').value.trim() === CONFIG.pinPanel) { S.panelOk = true; ls.set('ptu-panel-ok', true); render(true); } else { $('#errPin').textContent = 'PIN incorrecto.'; $('#pin').classList.add('invalid'); } });
+    fp.addEventListener('submit', async e => {
+      e.preventDefault();
+      const pin = $('#pin').value.trim(), btn = fp.querySelector('button');
+      let ok = false;
+      if (Store.sb) {
+        btn.disabled = true; btn.textContent = 'Revisando…';
+        try { const { data, error } = await Store.sb.rpc('ptu_admin_check', { p_pin: pin }); ok = !error && data === true; }
+        catch { ok = false; }
+        btn.disabled = false; btn.textContent = 'Entrar';
+      } else ok = pin === CONFIG.pinPanel;
+      if (ok) { S.pin = pin; S.panelOk = true; ls.set('ptu-panel-ok', true); ls.set('ptu-pin', pin); render(true); }
+      else { $('#errPin').textContent = 'PIN incorrecto.'; $('#pin').classList.add('invalid'); }
+    });
     $('#pin').focus(); return;
   }
   const itqA = $('#itqAdmin');
   if (itqA) montarBuscador(itqA, $('#itResAdmin'), 'Agregar', async (c, b) => {
     if (cancion(c.itId)) { toast('Esa canción ya está en el catálogo.'); return; }
     b.disabled = true;
-    try { await Store.add('sugerencias', { titulo: c.titulo, artista: c.artista, mesa: '', estado: 'aprobada', origen: 'encargado', ts: Date.now(), itId: c.itId, preview: c.preview, artwork: c.artwork, url: c.url }); b.textContent = 'Agregada'; toast('Agregada al catálogo de las mesas.'); }
+    try { await Store.add('sugerencias', { titulo: c.titulo, artista: c.artista, mesa: '', estado: 'aprobada', origen: 'encargado', ts: Date.now(), itId: c.itId, preview: c.preview, artwork: c.artwork, url: c.url }, { admin: true }); b.textContent = 'Agregada'; toast('Agregada al catálogo de las mesas.'); }
     catch { b.disabled = false; toast('No se pudo agregar. Inténtalo de nuevo.'); }
   });
-  $('#salir').onclick = () => { S.panelOk = false; ls.set('ptu-panel-ok', false); go('inicio'); };
+  $('#salir').onclick = () => { S.panelOk = false; S.pin = ''; ls.set('ptu-panel-ok', false); ls.set('ptu-pin', ''); go('inicio'); };
   $('#chkEj2').onchange = e => { S.incluirEjemplo = e.target.checked; render(false); };
   $('#siguiente').onclick = async e => {
     e.target.disabled = true;
