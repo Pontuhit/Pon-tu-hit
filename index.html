@@ -211,6 +211,20 @@ svg text { fill: var(--muted); font-family: var(--f-body); }
 .dm .head { font-weight: 700; display: flex; justify-content: space-between; gap: 8px; }
 .dm .head small { color: #777; font-weight: 500; }
 
+/* Modo TV: solo la pantalla del local, a todo el ancho */
+.tv-salir { display: none; }
+body.tv-mode .top, body.tv-mode footer, body.tv-mode .bottom-nav, body.tv-mode .mas-menu, body.tv-mode .toast { display: none !important; }
+body.tv-mode main { padding: 0; max-width: none; min-height: 0; }
+body.tv-mode .view > :not(.tv) { display: none !important; }
+body.tv-mode .view { animation: none; }
+body.tv-mode .tv { position: fixed; inset: 0; z-index: 50; border-radius: 0; padding: 0; box-shadow: none; }
+body.tv-mode .tv-inner { height: 100%; border-radius: 0; padding: clamp(24px, 5vw, 80px); }
+body.tv-mode .tv .who { font-size: clamp(48px, 9vw, 150px); }
+body.tv-mode .tv .now { font-size: clamp(36px, 6vw, 96px); }
+body.tv-mode .qr-box img, body.tv-mode .qr-box canvas { width: clamp(150px, 16vw, 260px) !important; height: auto !important; }
+body.tv-mode .tv-salir { display: block; position: fixed; top: calc(12px + env(safe-area-inset-top, 0px)); right: max(12px, env(safe-area-inset-right, 0px)); z-index: 60; background: rgba(0,0,0,.45); color: #fff; border: 1px solid rgba(255,255,255,.25); border-radius: 999px; padding: 8px 14px; font-weight: 700; cursor: pointer; opacity: .2; transition: opacity .2s; }
+body.tv-mode .tv-salir:hover, body.tv-mode .tv-salir:focus-visible { opacity: 1; }
+
 footer { border-top: 1px solid var(--line); padding-block: 20px 110px; font-size: 13px; color: var(--quiet); }
 footer .wrap { display: grid; gap: 6px; }
 
@@ -290,6 +304,8 @@ footer .wrap { display: grid; gap: 6px; }
   <button type="button" data-go="panel">Panel privado</button>
 </div>
 
+<button type="button" id="tvSalir" class="tv-salir">Salir de pantalla completa</button>
+
 <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 
 <script>
@@ -300,7 +316,7 @@ footer .wrap { display: grid; gap: 6px; }
 const CONFIG = {
   // Dirección pública del prototipo publicado. Fuera de claude.ai el QR usa la dirección desde donde se abre la página.
   publicUrl: (window.claude ? 'https://claude.ai/artifact/QKy41mgEaMzRWpqfuQKhyp' : ''),
-  mesaPorDefecto: '04',
+  mesaPorDefecto: '',   // vacío = QR general: la pantalla anuncia el alias en vez de la mesa
   cuposPorBloque: 15,
   minutosPorCancion: 3.5,
   pinPanel: '2026',            // Protección básica de demostración. No es seguridad real.
@@ -437,7 +453,7 @@ function leerMesa() {
   const mh = h.match(/^mesa-?(\d{1,3})$/i);
   if (mh) m = mh[1];
   if (m && /^\d{1,3}$/.test(m)) S.mesa = pad2(parseInt(m, 10));
-  $('#mesaChip').textContent = 'Mesa ' + S.mesa;
+  $('#mesaChip').textContent = S.mesa ? 'Mesa ' + S.mesa : 'QR general';
   const vistas = ['inicio', 'elegir', 'top', 'premios', 'redes', 'pantalla', 'panel'];
   if (vistas.includes(h)) S.view = h;
 }
@@ -457,7 +473,7 @@ const Store = {
         this.sb = window.supabase.createClient(CONFIG.supabaseUrl, CONFIG.supabaseKey, { auth: { persistSession: false } });
         await this.sbLeer();
         S.mode = 'supabase';
-        let t; const pedir = () => { clearTimeout(t); t = setTimeout(() => this.sbLeer().then(onData).catch(() => {}), 150); };
+        let t; const pedir = () => { clearTimeout(t); t = setTimeout(() => this.sbLeer().then(cambio => { if (cambio) onData(); }).catch(() => {}), 150); };
         this.sb.channel('ptu').on('postgres_changes', { event: '*', schema: 'public', table: 'ptu_docs' }, pedir).subscribe();
         setInterval(pedir, 10000); // respaldo por si el tiempo real se corta
         S.ready = true; pintarModo(); onData(); return;
@@ -505,9 +521,13 @@ const Store = {
   async sbLeer() {
     const { data, error } = await this.sb.from('ptu_docs').select('id,col,data,created_at').order('created_at').limit(2000);
     if (error) throw error;
+    const firma = JSON.stringify(data);
+    if (firma === this.firma) return false;
+    this.firma = firma;
     S.pedidos = data.filter(r => r.col === 'pedidos').map(r => ({ id: r.id, ...r.data }));
     S.sugerencias = data.filter(r => r.col === 'sugerencias').map(r => ({ id: r.id, ...r.data }));
     const e = data.filter(r => r.col === 'estado').pop(); S.estado = e ? { ...e.data } : {};
+    return true;
   },
   async rpc(fn, args) {
     const { data, error } = await this.sb.rpc(fn, { p_pin: S.pin || '', ...args });
@@ -637,9 +657,12 @@ function cola() { return S.pedidos.filter(p => p.estado !== 'sonó').sort((a, b)
 function sonando() { return S.pedidos.find(p => p.estado === 'sonando') || null; }
 function cuposLibres() { return Math.max(0, CONFIG.cuposPorBloque - cola().length); }
 function esperaMin(pos) { return Math.round(pos * CONFIG.minutosPorCancion); }
+const quien = p => 'pedido de ' + (p.mesa ? 'la mesa ' + p.mesa : (p.alias || 'una mesa'));
+const visitaKey = () => 'ptu-visita-' + (S.mesa || 'general');
 function urlMesa(mesa) {
   const base = CONFIG.publicUrl || (location.protocol.startsWith('http') && !window.claude ? location.origin + location.pathname : '');
   if (!base) return '';
+  if (!mesa) return base.split('#')[0].split('?')[0];
   return base.includes('claude.ai/') ? base.split('#')[0] + '#mesa-' + mesa : base.split('?')[0] + '?mesa=' + mesa;
 }
 
@@ -718,7 +741,7 @@ function vInicio() {
   return `
   <div class="hero">
     <div style="display:grid;gap:16px;min-width:0">
-      <span class="eyebrow">Just Burger · Mesa ${esc(S.mesa)}</span>
+      <span class="eyebrow">Just Burger${S.mesa ? ' · Mesa ' + esc(S.mesa) : ''}</span>
       <h1 class="display">Pon tu hit</h1>
       <div class="sub">Tu mesa elige. Todo el local la escucha.</div>
       <p>Escanea el QR de tu bandeja, elige la canción de tu grupo y mira cómo la pantalla anuncia tu mesa. Las más pedidas de la semana entran al Top 3 y ganan premios en el local.</p>
@@ -728,7 +751,7 @@ function vInicio() {
       <div class="scr">
         <div class="row" style="gap:8px"><span class="eq" aria-hidden="true"><span></span><span></span><span></span><span></span></span><span class="eyebrow" style="color:var(--yellow)">Pantalla del local</span></div>
         <div class="now">Ahora suena</div>
-        <div class="who">Pedido de la mesa ${esc(s ? s.mesa : '04')}</div>
+        <div class="who">${s ? esc(quien(s)) : 'Pedido de la mesa 04'}</div>
         <div class="song">${s ? esc(s.titulo) + ' · <span class="muted">' + esc(s.artista) + '</span>' : 'Juntémonos · <span class="muted">La Pandilla Ficticia</span>'}</div>
       </div>
     </div>
@@ -769,16 +792,16 @@ function listaCanciones() {
   return l.map(c => `<div class="song-opt" role="radio" tabindex="0" aria-checked="${S.sel === c.id}" data-song="${esc(c.id)}">${cover(c)}<span style="min-width:0"><b>${esc(c.titulo)}</b><span>${esc(c.artista)} · ${c.origen === 'catalogo' ? esc(c.genero) + ' · ficticia' : 'canción real'}</span></span>${playBtn(c)}</div>`).join('');
 }
 function vElegir() {
-  const visita = ls.get('ptu-visita-' + S.mesa, null);
+  const visita = ls.get(visitaKey(), null);
   if (visita) {
     const p = S.pedidos.find(x => x.id === visita);
-    return `<div class="confirm"><span class="eyebrow">Mesa ${esc(S.mesa)}</span><h2 class="display" style="font-size:52px">Tu mesa ya puso su hit</h2>
+    return `<div class="confirm"><span class="eyebrow">${S.mesa ? 'Mesa ' + esc(S.mesa) : 'Pon tu hit'}</span><h2 class="display" style="font-size:52px">${S.mesa ? 'Tu mesa ya puso su hit' : 'Ya pusiste tu hit'}</h2>
       <p class="muted" style="max-width:46ch;margin:0">La regla es <b style="color:var(--fg)">una canción por mesa y por visita</b>, para que todas las mesas alcancen a sonar.${p ? ' Pidieron «' + esc(p.titulo) + '».' : ''}</p>
       <div class="row" style="justify-content:center"><button class="btn btn-primary" type="button" data-go="top">Ver el Top 3</button><button class="btn btn-ghost" type="button" id="nuevaVisita">Simular nueva visita (demo)</button></div></div>`;
   }
   const sel = S.sel ? cancion(S.sel) : null;
   return `
-  <div class="section-head"><div><span class="eyebrow">Mesa ${esc(S.mesa)} · bloque Pon tu hit</span><h2 class="display">Elige tu hit</h2></div></div>
+  <div class="section-head"><div><span class="eyebrow">${S.mesa ? 'Mesa ' + esc(S.mesa) + ' · ' : ''}bloque Pon tu hit</span><h2 class="display">Elige tu hit</h2></div></div>
   <div class="slots" id="slots"></div>
   <form class="form" id="formHit" novalidate>
     <div class="field">
@@ -837,7 +860,7 @@ function actualizarCupos() {
 }
 after.elegir = () => {
   const nv = $('#nuevaVisita');
-  if (nv) { nv.onclick = () => { ls.set('ptu-visita-' + S.mesa, null); S.sel = null; render(true); }; return; }
+  if (nv) { nv.onclick = () => { ls.set(visitaKey(), null); S.sel = null; render(true); }; return; }
   actualizarCupos();
   const songs = $('#songs');
   $('#buscar').addEventListener('input', e => { S.q = e.target.value; songs.innerHTML = listaCanciones(); });
@@ -892,7 +915,7 @@ async function enviarHit(e) {
   try {
     const p = await Store.add('pedidos', data);
     const posicion = cola().filter(x => x.ts < data.ts).length;
-    S.ultimo = { ...p, posicion }; ls.set('ptu-ultimo', S.ultimo); ls.set('ptu-alias', alias.trim()); ls.set('ptu-visita-' + S.mesa, p.id);
+    S.ultimo = { ...p, posicion }; ls.set('ptu-ultimo', S.ultimo); ls.set('ptu-alias', alias.trim()); ls.set(visitaKey(), p.id);
     S.sel = null; S.q = ''; S.genero = 'Todos'; S.flashId = c.id;
     S.view = 'confirmado'; render(true); window.scrollTo({ top: 0, behavior: 'smooth' });
   } catch (err) {
@@ -919,11 +942,11 @@ function vConfirmado() {
   const r = ranking(); const pos = r.findIndex(x => x.id === p.cancionId) + 1; const x = r[pos - 1];
   return `
   <div class="confirm">
-    <span class="eyebrow">Mesa ${esc(p.mesa)} · ${esc(p.alias)}</span>
+    <span class="eyebrow">${p.mesa ? 'Mesa ' + esc(p.mesa) + ' · ' : ''}${esc(p.alias)}</span>
     <h2 class="display">¡Tu hit está en la cola!</h2>
     <div class="selected-box" style="justify-content:center">${cover(cancion(p.cancionId) || { titulo: p.titulo, genero: '', artwork: p.artwork })}<div style="text-align:left"><b style="font-size:20px">${esc(p.titulo)}</b><div class="muted">${esc(p.artista)}</div>${MUSICA_REAL && p.url ? '<a href="' + esc(p.url) + '" target="_blank" rel="noopener" style="font-size:13px">Abrir en Apple Music</a>' : ''}</div>${MUSICA_REAL ? playBtn({ id: p.cancionId, titulo: p.titulo, preview: p.preview }) : ''}</div>
     <p style="margin:0;max-width:48ch">Tu canción <b>sumó 1 solicitud</b> al ranking de la semana${x ? `: hoy está en el puesto <b style="color:var(--yellow)">#${pos}</b> con ${x.total} solicitudes` : ''}.</p>
-    <p class="muted" style="margin:0">${p.posicion ? 'Hay ' + p.posicion + ' canción(es) antes que la tuya. Sonaría en ~' + esperaMin(p.posicion) + ' min.' : 'Eres la siguiente en sonar.'} Cuando suene, la pantalla dirá «Ahora suena: pedido de la mesa ${esc(p.mesa)}».</p>
+    <p class="muted" style="margin:0">${p.posicion ? 'Hay ' + p.posicion + ' canción(es) antes que la tuya. Sonaría en ~' + esperaMin(p.posicion) + ' min.' : 'Eres la siguiente en sonar.'} Cuando suene, la pantalla dirá «Ahora suena: ${esc(quien(p))}».</p>
     ${p.dedicatoria ? '<p class="quiet" style="margin:0;font-size:14px">Tu dedicatoria saldrá en pantalla cuando el encargado la apruebe.</p>' : ''}
     <div style="display:grid;gap:4px;justify-items:center"><span class="quiet" style="font-size:13px">Tu código de participación</span><span class="code">${esc(p.codigo)}</span><span class="quiet" style="font-size:13px;max-width:44ch">Guárdalo: si tu canción entra al Top 3, lo muestras en caja para retirar tu premio.</span></div>
     <div class="row" style="justify-content:center"><button class="btn btn-primary" type="button" data-go="redes">Compartir con #PonTuHit</button><button class="btn btn-ghost" type="button" data-go="top">Ver el Top 3</button></div>
@@ -960,7 +983,7 @@ function vPremios() {
   <div class="notice"><b>Propuesta sujeta a aprobación de Just Burger.</b> El tipo de premio, su plazo de canje y la regla de ganadores son definiciones del equipo para el piloto. En este prototipo no se sortea nada, no se entregan premios y no se envían mensajes.</div>
   <div class="card" style="display:grid;gap:14px">
     <h3 style="font-size:22px">Ganadores de la semana (demostración)</h3>
-    ${g && g.length ? '<div class="rank">' + g.map((w, i) => `<article class="rank-item p${i + 1}"><div class="pos">${i + 1}</div><div style="min-width:0"><div class="t">${esc(w.titulo)}</div><div class="a">${w.mesa ? 'Mesa ' + esc(w.mesa) + ' · ' + esc(w.alias) : 'Solo solicitudes de ejemplo: sin mesa ganadora'}</div></div><div class="c"><small>${w.mesa ? esc(w.premio) : '—'}</small></div></article>`).join('') + '</div><p class="quiet" style="margin:0;font-size:13px">Calculado el ' + esc(new Date(S.estado.calculado).toLocaleString('es-CL')) + ' desde el panel.</p>'
+    ${g && g.length ? '<div class="rank">' + g.map((w, i) => `<article class="rank-item p${i + 1}"><div class="pos">${i + 1}</div><div style="min-width:0"><div class="t">${esc(w.titulo)}</div><div class="a">${w.alias ? (w.mesa ? 'Mesa ' + esc(w.mesa) + ' · ' : '') + esc(w.alias) : 'Solo solicitudes de ejemplo: sin mesa ganadora'}</div></div><div class="c"><small>${w.alias ? esc(w.premio) : '—'}</small></div></article>`).join('') + '</div><p class="quiet" style="margin:0;font-size:13px">Calculado el ' + esc(new Date(S.estado.calculado).toLocaleString('es-CL')) + ' desde el panel.</p>'
       : '<p class="muted" style="margin:0">Todavía no se cierra la semana. En la demostración, el cierre se hace desde el Panel → Premios.</p>'}
   </div>
   <div class="panel-box"><h3 style="margin-bottom:8px">Datos para contactar ganadores en una implementación real</h3>
@@ -971,14 +994,14 @@ function vRedes() {
   const p = S.ultimo;
   const r = ranking().slice(0, 3);
   const titulo = p ? p.titulo : 'Juntémonos', artista = p ? p.artista : 'La Pandilla Ficticia', mesa = p ? p.mesa : S.mesa;
-  const texto = `¡Sonó nuestro hit en Just Burger! 🎶 «${titulo}» – pedido de la mesa ${mesa}. ¿Y el tuyo? #PonTuHit`;
+  const texto = `¡Sonó nuestro hit en Just Burger! 🎶 «${titulo}» – ${mesa ? 'pedido de la mesa ' + mesa : 'pedido de nuestro grupo'}. ¿Y el tuyo? #PonTuHit`;
   return `
   <div class="section-head"><div><span class="eyebrow">Etapa 4 · Recuerdo y difusión</span><h2 class="display">#PonTuHit</h2></div></div>
   <p class="muted" style="margin:0;max-width:62ch">Cuando suene tu canción, sácate una foto con tu mesa frente a la pantalla y súbela a Instagram o TikTok con <b style="color:var(--pink)">#PonTuHit</b> y etiquetando a Just Burger. Estas tarjetas son la referencia de diseño para historias y publicaciones.</p>
   <div class="grid-2" style="align-items:start">
     <div style="display:grid;gap:12px;justify-items:center">
       <div class="story" aria-label="Tarjeta para historia: tu hit">
-        <div class="row" style="justify-content:space-between"><span class="mark" style="font-size:16px">Just<br>Burger</span><span class="mono" style="font-size:12px;color:var(--muted)">MESA ${esc(mesa)}</span></div>
+        <div class="row" style="justify-content:space-between"><span class="mark" style="font-size:16px">Just<br>Burger</span><span class="mono" style="font-size:12px;color:var(--muted)">${mesa ? 'MESA ' + esc(mesa) : 'PON TU HIT'}</span></div>
         <div style="display:grid;gap:8px">
           <div class="k" style="color:var(--pink);font-size:34px">Ahora suena</div>
           <div class="k" style="color:var(--yellow);font-size:52px">Nuestro hit</div>
@@ -1025,9 +1048,9 @@ function vPantalla() {
   <div class="tv" id="tv"><div class="tv-inner">
     <div style="display:grid;gap:12px;min-width:0">
       ${s ? `<div class="row" style="gap:10px"><span class="eq" aria-hidden="true"><span></span><span></span><span></span><span></span></span><span class="now">Ahora suena</span></div>
-      <div class="who">Pedido de la mesa ${esc(s.mesa)}</div>
+      <div class="who">${esc(quien(s))}</div>
       <div class="song">${esc(s.titulo)} <span class="muted">· ${esc(s.artista)}</span></div>
-      <div class="muted">por ${esc(s.alias)}</div>
+      ${s.mesa ? '<div class="muted">por ' + esc(s.alias) + '</div>' : ''}
       ${ded ? '<div class="ded">«' + esc(ded) + '»</div>' : ''}`
       : `<div class="now">Pon tu hit</div><div class="who">Escanea y elige tu canción</div><div class="song">Una canción por mesa · ${cuposLibres()} cupos libres</div>`}
       <div style="border-top:1px solid var(--line);padding-top:12px;display:flex;gap:18px;flex-wrap:wrap;font-size:15px">
@@ -1036,7 +1059,7 @@ function vPantalla() {
     </div>
     <div style="display:grid;gap:8px;justify-items:center">
       ${url ? '<div class="qr-box" id="qrTv"></div>' : ''}
-      <span class="mono" style="font-size:13px">Mesa ${esc(S.mesa)} · #PonTuHit</span>
+      <span class="mono" style="font-size:13px">${S.mesa ? 'Mesa ' + esc(S.mesa) + ' · ' : 'Escanea · '}#PonTuHit</span>
     </div>
   </div></div>
   ${MUSICA_REAL ? `<div class="panel-box row" style="justify-content:space-between">
@@ -1055,7 +1078,7 @@ after.pantalla = () => {
     if (S.sonido && s && s.id !== S.ultimoSonado) tocar();
     if (S.sonido && !s) detener();
   }
-  $('#fs').onclick = () => { const tv = $('#tv'); if (tv.requestFullscreen) tv.requestFullscreen().catch(() => toast('Tu navegador no permite pantalla completa aquí.')); else toast('Tu navegador no permite pantalla completa aquí.'); };
+  $('#fs').onclick = entrarModoTV;
 };
 function qr(el, text, size) {
   el.innerHTML = '';
@@ -1063,6 +1086,23 @@ function qr(el, text, size) {
   try { new window.QRCode(el, { text, width: size, height: size, colorDark: '#2b0f2c', colorLight: '#ffffff', correctLevel: window.QRCode.CorrectLevel.M }); }
   catch { el.textContent = 'No se pudo generar el QR.'; }
 }
+
+/* Pantalla completa: se aplica a toda la página (que nunca se reemplaza), así las actualizaciones de datos no la cierran. */
+const fsEl = () => document.fullscreenElement || document.webkitFullscreenElement;
+function marcarModoTV(on) { document.body.classList.toggle('tv-mode', on); }
+function entrarModoTV() {
+  const el = document.documentElement, req = el.requestFullscreen || el.webkitRequestFullscreen;
+  marcarModoTV(true);
+  if (req) { try { const r = req.call(el); if (r && r.catch) r.catch(() => {}); } catch {} }
+}
+function salirModoTV() {
+  const ex = document.exitFullscreen || document.webkitExitFullscreen;
+  if (fsEl() && ex) { try { const r = ex.call(document); if (r && r.catch) r.catch(() => {}); } catch {} }
+  marcarModoTV(false);
+}
+['fullscreenchange', 'webkitfullscreenchange'].forEach(ev => document.addEventListener(ev, () => { if (!fsEl()) marcarModoTV(false); }));
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && document.body.classList.contains('tv-mode')) salirModoTV(); });
+document.getElementById('tvSalir').addEventListener('click', salirModoTV);
 
 /* ---------- Panel ---------- */
 function vPanel() {
@@ -1076,7 +1116,7 @@ function vPanel() {
       </form>
     </div>`;
   const live = S.pedidos, n = live.length;
-  const mesas = new Map(); live.forEach(p => mesas.set(p.mesa, (mesas.get(p.mesa) || 0) + 1));
+  const mesas = new Map(); live.forEach(p => { const k = p.mesa || 'Sin mesa'; mesas.set(k, (mesas.get(k) || 0) + 1); });
   const sem = inicioSemana();
   const porDia = DIAS.map((_, i) => live.filter(p => p.ts >= sem && diaIdx(p.ts) === i).length);
   const espera = live.filter(p => p.sonoTs).map(p => (p.sonoTs - p.ts) / 60000);
@@ -1090,7 +1130,7 @@ function vPanel() {
 
   <div class="kpis">
     <div class="kpi"><span>Participaciones de prueba</span><b class="num" style="color:var(--pink)">${n}</b><small>+ ${SEED_TOTAL} de ejemplo (ficticias)</small></div>
-    <div class="kpi"><span>Mesas que participaron</span><b class="num">${mesas.size}</b><small>en datos de prueba</small></div>
+    <div class="kpi"><span>Mesas que participaron</span><b class="num">${[...mesas.keys()].filter(k => k !== 'Sin mesa').length}</b><small>${mesas.has('Sin mesa') ? mesas.get('Sin mesa') + ' pedido(s) con QR general' : 'en datos de prueba'}</small></div>
     <div class="kpi"><span>En cola ahora</span><b class="num">${q.length}</b><small>${cuposLibres()} de ${CONFIG.cuposPorBloque} cupos libres</small></div>
     <div class="kpi"><span>Espera promedio</span><b class="num">${espProm == null ? '—' : espProm + ' min'}</b><small>del pedido a «sonó»</small></div>
   </div>
@@ -1107,7 +1147,7 @@ function vPanel() {
   <div class="panel-box" style="display:grid;gap:12px" id="colaBox">
     <div class="section-head"><h3>Cola del bloque y pantalla</h3><button class="btn btn-primary btn-sm" type="button" id="siguiente" ${q.length ? '' : 'disabled'}>${sn ? 'Marcar como sonada y pasar a la siguiente' : 'Poner la primera canción en pantalla'}</button></div>
     <div class="tbl-wrap"><table><thead><tr><th>Hora</th><th>Mesa</th><th>Alias</th><th>Canción</th><th>Dedicatoria</th><th>Estado</th></tr></thead><tbody>
-    ${q.length ? q.map(p => `<tr><td class="num">${hora(p.ts)}</td><td class="mono">${esc(p.mesa)}</td><td>${esc(p.alias)}</td><td><b>${esc(p.titulo)}</b><div class="quiet" style="font-size:13px">${esc(p.artista)}</div></td>
+    ${q.length ? q.map(p => `<tr><td class="num">${hora(p.ts)}</td><td class="mono">${esc(p.mesa || '—')}</td><td>${esc(p.alias)}</td><td><b>${esc(p.titulo)}</b><div class="quiet" style="font-size:13px">${esc(p.artista)}</div></td>
       <td>${p.dedicatoria ? esc(p.dedicatoria) + '<div class="row" style="gap:6px;margin-top:6px">' + (p.dedEstado === 'pendiente' ? `<button class="btn btn-ghost btn-sm" data-ded="${esc(p.id)}" data-v="aprobada">Aprobar</button><button class="btn btn-ghost btn-sm" data-ded="${esc(p.id)}" data-v="oculta">Ocultar</button>` : `<span class="tag ${p.dedEstado === 'aprobada' ? 'tag-ok' : 'tag-bad'}">${esc(p.dedEstado)}</span>`) + '</div>' : '<span class="quiet">—</span>'}</td>
       <td><span class="tag ${p.estado === 'sonando' ? 'tag-ok' : 'tag-warn'}">${esc(p.estado)}</span></td></tr>`).join('') : '<tr><td colspan="6" class="quiet">No hay canciones en cola. Pide un hit desde «Pon tu hit» para verlo aquí.</td></tr>'}
     </tbody></table></div>
@@ -1149,7 +1189,7 @@ function vPanel() {
 
   <div class="grid-2">
     <div class="panel-box" style="display:grid;gap:12px">
-      <h3>QR de mesa</h3>
+      <h3>Código QR</h3><p class="quiet" style="margin:0;font-size:14px">Deja la mesa vacía para un <b>QR general</b> (sirve para la diapositiva y para el jurado: la pantalla anuncia el alias). Con número, sirve para el cartel de cada mesa.</p>
       <div class="row"><label class="lbl" for="mesaQr">Mesa</label><input class="input mono" id="mesaQr" style="width:90px" inputmode="numeric" maxlength="3" value="${esc(S.mesa)}"><button class="btn btn-ghost btn-sm" type="button" id="genQr">Generar</button></div>
       <div id="qrOut"></div>
     </div>
@@ -1181,12 +1221,12 @@ function chartDias(porDia) {
 }
 function chartMesas(rows) {
   const max = Math.max(...rows.map(r => r[1]));
-  return '<div style="display:grid;gap:8px">' + rows.map(([m, v]) => `<div style="display:grid;grid-template-columns:72px 1fr 32px;gap:10px;align-items:center;font-size:14px"><span class="mono">Mesa ${esc(m)}</span><span style="background:var(--bg-2);border-radius:6px;height:14px;overflow:hidden"><i style="display:block;height:100%;width:${(v / max) * 100}%;background:var(--pink);border-radius:6px"></i></span><b class="num" style="text-align:right">${v}</b></div>`).join('') + '</div>';
+  return '<div style="display:grid;gap:8px">' + rows.map(([m, v]) => `<div style="display:grid;grid-template-columns:72px 1fr 32px;gap:10px;align-items:center;font-size:14px"><span class="mono">${m === 'Sin mesa' ? 'QR general' : 'Mesa ' + esc(m)}</span><span style="background:var(--bg-2);border-radius:6px;height:14px;overflow:hidden"><i style="display:block;height:100%;width:${(v / max) * 100}%;background:var(--pink);border-radius:6px"></i></span><b class="num" style="text-align:right">${v}</b></div>`).join('') + '</div>';
 }
 function dmPreview() {
   const g = S.estado && S.estado.ganadores;
   if (!g || !g.length) return '<p class="quiet" style="margin:0">Todavía no se calculan ganadores.</p>';
-  return '<div class="grid-3">' + g.map((w, i) => w.mesa ? `<div class="dm"><div class="head">Vista previa del aviso <small>no enviado</small></div><div class="bubble">¡Hola, ${esc(w.alias)}! 🎉 Tu hit «${esc(w.titulo)}» quedó #${i + 1} en el Top 3 de la semana en Just Burger. Muestra el código <b>${esc(w.codigo)}</b> en caja y retira: ${esc(w.premio)}. Válido solo en el local. #PonTuHit</div><small style="color:#777">Mesa ${esc(w.mesa)} · simulación, no se envía a nadie</small></div>`
+  return '<div class="grid-3">' + g.map((w, i) => w.alias ? `<div class="dm"><div class="head">Vista previa del aviso <small>no enviado</small></div><div class="bubble">¡Hola, ${esc(w.alias)}! 🎉 Tu hit «${esc(w.titulo)}» quedó #${i + 1} en el Top 3 de la semana en Just Burger. Muestra el código <b>${esc(w.codigo)}</b> en caja y retira: ${esc(w.premio)}. Válido solo en el local. #PonTuHit</div><small style="color:#777">${w.mesa ? 'Mesa ' + esc(w.mesa) + ' · ' : ''}simulación, no se envía a nadie</small></div>`
     : `<div class="dm"><div class="head">#${i + 1} ${esc(w.titulo)}</div><div class="bubble">Esta canción está en el Top 3 solo por datos de ejemplo. No hay mesa ganadora de prueba.</div></div>`).join('') + '</div>';
 }
 after.panel = () => {
@@ -1221,7 +1261,7 @@ after.panel = () => {
     try {
       const sn = sonando(); if (sn) await Store.upd('pedidos', sn.id, { estado: 'sonó', sonoTs: Date.now() });
       const next = cola().find(p => p.estado !== 'sonando' && (!sn || p.id !== sn.id));
-      if (next) { await Store.upd('pedidos', next.id, { estado: 'sonando' }); toast('En pantalla: mesa ' + next.mesa + ' · ' + next.titulo); }
+      if (next) { await Store.upd('pedidos', next.id, { estado: 'sonando' }); toast('En pantalla: ' + quien(next) + ' · ' + next.titulo); }
       else toast('La cola quedó vacía.');
     } catch { toast('No se pudo actualizar la cola. Inténtalo de nuevo.'); e.target.disabled = false; }
   };
@@ -1232,16 +1272,16 @@ after.panel = () => {
     const premios = ['Papas gratis para la mesa (hasta 4 porciones)', 'Papas gratis para la mesa (hasta 4 porciones)', 'Descuento en tu próxima compra'];
     const ganadores = top.map((x, i) => {
       const prim = S.pedidos.filter(p => p.cancionId === x.id).sort((a, b) => a.ts - b.ts)[0];
-      return prim ? { titulo: x.c.titulo, mesa: prim.mesa, alias: prim.alias, codigo: prim.codigo, premio: premios[i] } : { titulo: x.c.titulo, mesa: null };
+      return prim ? { titulo: x.c.titulo, mesa: prim.mesa || '', alias: prim.alias, codigo: prim.codigo, premio: premios[i] } : { titulo: x.c.titulo, mesa: null, alias: null };
     });
     try { await Store.setEstado({ ganadores, calculado: Date.now() }); toast('Ganadores calculados (simulación). No se envió ningún mensaje.'); } catch { toast('No se pudo guardar el cierre.'); }
   };
   const genQr = () => {
     const v = $('#mesaQr').value.trim(); const out = $('#qrOut');
-    if (!/^\d{1,3}$/.test(v)) { out.innerHTML = '<span class="err">Escribe un número de mesa (1 a 3 dígitos).</span>'; return; }
-    const m = pad2(parseInt(v, 10)), u = urlMesa(m);
+    if (v && !/^\d{1,3}$/.test(v)) { out.innerHTML = '<span class="err">Escribe un número de mesa (1 a 3 dígitos) o déjalo vacío para un QR general.</span>'; return; }
+    const m = v ? pad2(parseInt(v, 10)) : '', u = urlMesa(m);
     if (!u) { out.innerHTML = '<div class="notice">Para generar un QR real, abre el prototipo desde su dirección web (servidor local o enlace publicado). No se genera un QR hacia una dirección que no funcione.</div>'; return; }
-    out.innerHTML = '<div class="row" style="align-items:start"><div class="qr-box" id="qrM"></div><div style="display:grid;gap:6px;min-width:0"><b>Mesa ' + esc(m) + '</b><span class="mono" style="font-size:12px;overflow-wrap:anywhere">' + esc(u) + '</span><span class="quiet" style="font-size:13px">Imprímelo en el cartel de mesa o en el papel de la bandeja.</span></div></div>';
+    out.innerHTML = '<div class="row" style="align-items:start"><div class="qr-box" id="qrM"></div><div style="display:grid;gap:6px;min-width:0"><b>' + (m ? 'Mesa ' + esc(m) : 'QR general (sin mesa)') + '</b><span class="mono" style="font-size:12px;overflow-wrap:anywhere">' + esc(u) + '</span><span class="quiet" style="font-size:13px">' + (m ? 'Imprímelo en el cartel de mesa o en el papel de la bandeja.' : 'Ponlo en tu diapositiva: cada persona escribe su alias y la pantalla lo anuncia.') + '</span></div></div>';
     qr($('#qrM'), u, 160);
   };
   $('#genQr').onclick = genQr; genQr();
